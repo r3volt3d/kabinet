@@ -7,12 +7,12 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 :root{--bg:#f2f4f6;--card:#fff;--tile:#f2f4f6;--ink:#14202a;--muted:#5d6b77;--line:#dde3e8;--accent:#0d6f72;--accent-ink:#fff;--soft:#e1f0f0;
---good:#1d7a3e;--good-s:#e3f3e8;--warn:#9a6200;--warn-s:#fbf0d9;--bad:#b4232c;--bad-s:#fbe4e5;--keep:#4b4fb0;--keep-s:#e8e9fa;
+--gem:#1677c8;--gem-s:#e2effa;--good:#1d7a3e;--good-s:#e3f3e8;--warn:#9a6200;--warn-s:#fbf0d9;--bad:#b4232c;--bad-s:#fbe4e5;--keep:#4b4fb0;--keep-s:#e8e9fa;
 --f:"Segoe UI",Roboto,system-ui,-apple-system,sans-serif;--nav:64px}
 @media (prefers-color-scheme:dark){:root:not(.light){--bg:#0e1418;--card:#172026;--tile:#1f2a31;--ink:#e6edf1;--muted:#97a6b1;--line:#2a363e;--accent:#4fb8b9;--accent-ink:#0e1418;--soft:#16302f;
---good:#5ccf84;--good-s:#15301f;--warn:#e6b14a;--warn-s:#33280f;--bad:#f07a80;--bad-s:#3a191c;--keep:#a3a6f5;--keep-s:#23244a;color-scheme:dark}}
+--gem:#6db8f2;--gem-s:#132a3d;--good:#5ccf84;--good-s:#15301f;--warn:#e6b14a;--warn-s:#33280f;--bad:#f07a80;--bad-s:#3a191c;--keep:#a3a6f5;--keep-s:#23244a;color-scheme:dark}}
 :root.dark{--bg:#0e1418;--card:#172026;--tile:#1f2a31;--ink:#e6edf1;--muted:#97a6b1;--line:#2a363e;--accent:#4fb8b9;--accent-ink:#0e1418;--soft:#16302f;
---good:#5ccf84;--good-s:#15301f;--warn:#e6b14a;--warn-s:#33280f;--bad:#f07a80;--bad-s:#3a191c;--keep:#a3a6f5;--keep-s:#23244a;color-scheme:dark}
+--gem:#6db8f2;--gem-s:#132a3d;--good:#5ccf84;--good-s:#15301f;--warn:#e6b14a;--warn-s:#33280f;--bad:#f07a80;--bad-s:#3a191c;--keep:#a3a6f5;--keep-s:#23244a;color-scheme:dark}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 var(--f)}
 button{font:inherit;color:inherit}
@@ -54,7 +54,12 @@ h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute
 .chip.on{border-color:var(--accent);background:var(--soft);color:var(--accent)}
 .pill{display:inline-block;font-size:12px;font-weight:700;padding:3px 8px;border-radius:99px;white-space:nowrap;flex:0 0 auto}
 .p-good{background:var(--good-s);color:var(--good)}.p-edge{background:var(--warn-s);color:var(--warn)}.p-red{background:var(--bad-s);color:var(--bad)}
-.p-keep{background:var(--keep-s);color:var(--keep)}.p-wait{background:var(--tile);color:var(--muted)}
+.p-keep{background:var(--keep-s);color:var(--keep)}.p-gem{background:var(--gem-s);color:var(--gem)}.p-oos{background:var(--tile);color:var(--muted)}
+.sprow{display:grid;grid-template-columns:62px 1fr auto;gap:6px;align-items:baseline;padding:6px 0;border-top:1px solid var(--line)}.sprow:first-child{border-top:0}.sprow small{color:var(--muted)}.sprow b{font-variant-numeric:tabular-nums}.sprow span{font-size:12px;color:var(--muted);text-align:right}
+.camp{padding:8px 0;border-top:1px solid var(--line)}.camp .top{display:flex;justify-content:space-between;gap:8px;font-size:13px}.camp .nm{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.camp .sub{font-size:12px;color:var(--muted)}
+.hb{display:flex;align-items:flex-end;gap:2px;height:84px;margin:8px 0 2px}.hb div{flex:1;display:flex;flex-direction:column-reverse;border-radius:3px 3px 0 0;overflow:hidden;min-height:1px;background:var(--line)}.hb i{display:block;background:var(--accent)}.hb i.e{background:var(--gem)}.hb div.dead{outline:2px solid var(--bad);outline-offset:-2px}
+.hx{display:flex;gap:2px;font-size:9px;color:var(--muted)}.hx span{flex:1;text-align:center}
+.leak{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-top:1px solid var(--line);font-size:13px}.leak b{white-space:nowrap}.p-wait{background:var(--tile);color:var(--muted)}
 .item{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:8px;cursor:pointer;width:100%;text-align:left;display:block}
 .item .top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
 .item .name{font-weight:700;overflow-wrap:anywhere;min-width:0}
@@ -89,7 +94,7 @@ html.panel .app{padding-left:8px;padding-right:8px}html.panel nav button{font-si
 
 <section class="screen" id="s-home">
 <div class="card"><h3 id="h-per-t">Итоги</h3><div class="tiles" id="h-per-tiles"></div><p class="note" id="h-per-cmp"></p><p class="note">Период — кнопками вверху. Чистая прибыль — после всех расходов и рекламы; выкупы — оценка.</p></div>
-<div class="card"><h3>Сейчас · реклама сегодня <small class="note" style="margin:0;font-weight:400">не зависит от периода</small></h3><div class="tiles" id="h-spend"></div><div id="h-limbar"></div></div>
+<div class="card"><h3>💸 Расход и ДРР <small class="note" style="margin:0;font-weight:400" id="h-sp-t">не зависит от периода</small></h3><div class="tiles" id="h-spend"></div><div id="h-limbar"></div><div id="h-sprows"></div><div id="h-camps"></div></div>
 <h2>Требует внимания</h2><div id="h-alerts"></div>
 <h2 id="h-per">Товары</h2><div id="h-prods"></div>
 </section>
@@ -101,12 +106,14 @@ html.panel .app{padding-left:8px;padding-right:8px}html.panel nav button{font-si
 <div class="row2"><label class="note" for="a-sort" style="margin:0">Сортировка</label><select class="sel" id="a-sort">
 <option value="sp">по расходу</option><option value="o">по заказам</option><option value="cpo">по цене заказа</option><option value="share">по доле заказов</option></select></div>
 <div id="a-list"></div>
+<div class="card" id="a-leak-c"><h3 id="a-leak-t">🗓 Куда ушли деньги</h3><div id="a-leak"></div></div>
+<div class="card" id="a-hrs-c"><h3>🕐 Заказы по часам <small class="note" style="margin:0;font-weight:400">14 дней, МСК</small></h3><div id="a-hrs"></div></div>
 <p class="note">Нажми на кластер — подробности. Менять рекламу — в боте кнопками с подтверждением («🎯 Настройка рекламы», «📊 Джем»).</p>
 </section>
 
 <section class="screen" id="s-econ">
 <div class="row2"><div class="seg" id="e-prod"></div></div>
-<div class="card"><h3>Прибыль с одного выкупа</h3><div class="ladder" id="e-ladder"></div></div>
+<div class="card"><h3>Прибыль с одного выкупа</h3><div class="note" id="e-note" style="margin:0 0 6px"></div><div class="ladder" id="e-ladder"></div></div>
 <div class="card"><h3>Сколько можно платить за рекламу</h3><div class="tiles" id="e-ads"></div>
 <p class="note">🎯 Цель — продажа с рекламы окупает себя, реклама съедает не больше <span id="e-keep"></span>% прибыли. 🔴 MAX — реклама съедает всю прибыль.</p></div>
 <p class="note">Изменить себестоимость, налог, логистику — в боте: «💰 Экономика» → ✏️.</p>
@@ -129,6 +136,8 @@ html.panel .app{padding-left:8px;padding-right:8px}html.panel nav button{font-si
 <li><span class="pill p-keep">🛡 Не трогать</span> — дорогие, но дают 10% заказов товара и больше. Только снижать ставку.</li>
 <li><span class="pill p-edge">🟡 На грани</span> — между целью и пределом. Смотреть, не повышать.</li>
 <li><span class="pill p-good">🟢 Работают</span> — дешевле цели.</li>
+<li><span class="pill p-gem">💎 Самородок</span> — работает дёшево, конверсия выше средней в 1,4+ раза, а показов мало. Кандидат поднять ставку (+10%, по одному).</li>
+<li><b>Клик до</b> — безубыточная цена клика: прибыль с заказа × конверсия клик → заказ.</li>
 <li><span class="pill p-wait">⏳ Мало данных</span> — рано судить.</li>
 </ul></div>
 <h2>Расширение Chrome</h2>
@@ -142,7 +151,7 @@ html.panel .app{padding-left:8px;padding-right:8px}html.panel nav button{font-si
 <script>
 // «Кабинет WB» на GitHub Pages. В этом файле нет ни ключей, ни данных магазина:
 // данные страница берёт у бота (Apps Script, ?p=data), вход — подпись Telegram, подпись ссылки или ключ расширения.
-var PAGE_VER='1.7 · 12.11.2026';
+var PAGE_VER='1.8 · 13.11.2026';
 var TG=(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initData)?Telegram.WebApp:null;
 var D=null,CACHE={},PEND={},MODE='fetch',SEQ=0,ERR='';
 var V={red:['🔴','Сливают','p-red'],keep:['🛡','Не трогать','p-keep'],edge:['🟡','На грани','p-edge'],good:['🟢','Работают','p-good'],wait:['⏳','Мало данных','p-wait']};
@@ -257,6 +266,60 @@ function load(d,ok,fail){
   },function(e){end({message:(e&&e.message)||'нет связи с ботом'})});
 }
 
+// ---- 1.8: как в Cent — расходы по кампаниям, самородки, утечки, часы ----
+function okBe(a){return a.be>0&&(a.gem||a.vd==='good'||a.vd==='edge'||a.vd==='keep')}
+function C(){return D&&D.cent&&!D.cent.err?D.cent:{}}
+function oos(p){var o=C().oos;return !!(o&&o[p.nm])}
+function light(sp,lim){if(!lim)return '';var r=sp/lim;return '<span class="pill '+(r>1?'p-red':r>=0.8?'p-edge':'p-good')+'">'+(r>1?'🔴 ':r>=0.8?'🟡 ':'🟢 ')+Math.round(r*100)+'% лимита</span>'}
+function spRow(l,sp,o,rev){return '<div class="sprow"><small>'+l+'</small><b>'+rub(sp)+'</b><span>'+(o?o+' зак. · '+rub(sp/o)+'/зак.':sp?'0 зак.':'')+(sp&&rev?' · ДРР '+pct(sp/rev):'')+'</span></div>'}
+function limBar(sp,lim){return lim?'<div class="bar"><i style="width:'+Math.min(100,sp/lim*100)+'%;background:'+(sp>=lim?'var(--bad)':sp>=lim*0.8?'var(--warn)':'var(--good)')+'"></i></div>':''}
+function renderSpend(){
+  var c=C().sp;if(!c){$('h-sprows').innerHTML='';$('h-camps').innerHTML='';return false}
+  var t=c.tot,L=c.lim.total;$('h-sp-t').textContent='на '+c.time+' · не зависит от периода';
+  $('h-spend').innerHTML=tile('Сегодня',rub(t.today),L?'лимит '+rub(L):'',L&&t.today>L?'bad':L&&t.today>=0.8*L?'warn':'')+
+    tile('₽ за заказ',t.todayO?rub(t.today/t.todayO):'—',t.todayO?t.todayO+' зак. · ДРР '+(t.todayRev?pct(t.today/t.todayRev):'—'):'заказов пока нет');
+  $('h-limbar').innerHTML=limBar(t.today,L);
+  $('h-sprows').innerHTML='<div style="margin-top:6px">'+spRow('Сегодня',t.today,t.todayO,t.todayRev)+spRow('Вчера',t.yest,t.yestO,t.yestRev)+spRow('Месяц',t.month,t.monthO,t.monthRev)+'</div>'+
+    (c.lim.auction?'<div class="note">🎯 Аукционы сегодня '+rub(c.kind.auction)+' '+light(c.kind.auction,c.lim.auction)+'</div>':'')+(c.lim.auto?'<div class="note">🤖 Авто сегодня '+rub(c.kind.auto)+' '+light(c.kind.auto,c.lim.auto)+'</div>':'');
+  var big=c.camps.filter(function(x){return x.st===9||x.month>=100||x.yest>=50}),small=c.camps.filter(function(x){return big.indexOf(x)<0});
+  $('h-camps').innerHTML=big.map(function(x){return '<div class="camp"><div class="top"><span class="nm">'+(x.st===9?'🟢 ':x.st===11?'⏸ ':'⚪️ ')+esc(x.n)+'</span><b>'+rub(x.today)+'</b></div>'+
+    '<div class="sub">'+(x.todayO?x.todayO+' зак. · '+rub(x.today/x.todayO)+'/зак.':'сегодня заказов нет')+' · вчера '+rub(x.yest)+(x.yestO?' ('+x.yestO+' зак.)':'')+' · месяц '+rub(x.month)+(x.monthO?' · '+rub(x.month/x.monthO)+'/зак.':'')+'</div>'+limBar(x.today,x.lim)+'</div>'}).join('')+
+    (small.length?'<div class="note">Мелочь: '+small.map(function(x){return esc(x.n)+' — '+rub(x.month)+' за месяц'}).join('; ')+'</div>':'');
+  return true;
+}
+function renderLeak(p){
+  var sum=function(l){return l.reduce(function(x,a){return x+a.sp},0)};
+  var red=p.list.filter(function(a){return a.vd==='red'}),noCart=red.filter(function(a){return !a.o&&!a.atbs}),dear=red.filter(function(a){return a.o||a.atbs}),
+    cart=p.list.filter(function(a){return !a.o&&a.atbs>0&&a.sp>=100}),gems=p.list.filter(function(a){return a.gem}),w=sum(noCart)+sum(dear);
+  $('a-leak-t').textContent='🗓 Куда ушли деньги · '+perTxt(D.days);
+  var row=function(t,v,sub){return '<div class="leak"><span>'+t+(sub?'<br><small class="note" style="margin:0">'+sub+'</small>':'')+'</span><b>'+v+'</b></div>'};
+  var h='<div class="tiles">'+tile('Впустую',rub(w),p.sp?pct(w/p.sp,0)+' расхода':'',w>=300?'bad':'')+tile('💎 Самородки',String(gems.length),gems.length?'поднять ставку +10%':'')+'</div>';
+  if(noCart.length)h+=row('Фразы без корзин и заказов: '+noCart.length,rub(sum(noCart)),noCart.slice(0,3).map(function(a){return esc(a.q)}).join(', '));
+  if(dear.length)h+=row('Фразы съедают маржу: '+dear.length,rub(sum(dear)),dear.slice(0,3).map(function(a){return esc(a.q)}).join(', '));
+  if(cart.length)h+=row('Корзины есть, заказов нет: '+cart.length,'—','мешают цена, отзывы или доставка — фразы не выключать');
+  var plan=[],worst=red.slice().sort(function(a,b){return b.sp-a.sp})[0];
+  if(worst)plan.push('в минус «'+esc(worst.q)+'» — один кластер, потом 7 дней смотреть');
+  if(gems[0])plan.push('поднять ставку на 💎 «'+esc(gems[0].q)+'» на +10%');
+  if(plan.length)h+='<div class="note" style="margin-top:8px">📋 План: '+plan.join('; ')+'. Делать — в боте кнопками.</div>';
+  if(!noCart.length&&!dear.length&&!cart.length)h+='<div class="note">Явных утечек за период нет ✅</div>';
+  if(D.days===1)h+='<div class="note">За один день данных мало — решения принимай по 7 дням.</div>';
+  $('a-leak').innerHTML=h;
+}
+function renderHrs(){
+  var hr=C().hrs;if(!hr||!hr.n){$('a-hrs').innerHTML='<div class="empty">Заказов за 14 дней нет или бот ещё не посчитал</div>';return}
+  var mx=Math.max.apply(null,hr.o)||1,dead={};Object.keys(hr.camps||{}).forEach(function(id){(hr.camps[id].dead||[]).forEach(function(x){dead[x]=1})});
+  var h='<div class="hb">'+hr.o.map(function(v,i){var e=hr.east[i]||0;return '<div class="'+(dead[i]?'dead':'')+'" title="'+i+':00 — '+v+' зак.'+(e?', восток '+e:'')+'" style="height:'+Math.max(2,v/mx*100)+'%"><i style="height:'+(v?(v-e)/v*100:0)+'%"></i><i class="e" style="height:'+(v?e/v*100:0)+'%"></i></div>'}).join('')+'</div>'+
+    '<div class="hx">'+hr.o.map(function(v,i){return '<span>'+(i%3===0?i:'')+'</span>'}).join('')+'</div>';
+  var night=hr.o.slice(0,7).reduce(function(a,b){return a+b},0),nE=hr.east.slice(0,7).reduce(function(a,b){return a+b},0);
+  h+='<div class="plg" style="margin-top:6px"><span><i style="border-top:6px solid var(--accent)"></i>заказы</span><span><i style="border-top:6px solid var(--gem)"></i>Урал, Сибирь, ДВ</span>'+(Object.keys(dead).length?'<span><i style="border-top:2px solid var(--bad)"></i>реклама без корзин</span>':'')+'</div>';
+  h+='<div class="note">🌙 Ночь 00–07: '+pct(night/hr.n,0)+' заказов'+(night?', из них '+pct(nE/night,0)+' — восток (у них утро)':'')+(night/hr.n>=0.05?'. Ночью рекламу целиком не выключать.':'.')+'</div>';
+  if(hr.days<hr.need)h+='<div class="note">📣 Реклама по часам: коплю данные — '+hr.days+' из '+hr.need+' дн.</div>';
+  else{var names={};((C().sp||{}).camps||[]).forEach(function(c){names[c.id]=c.n});
+    Object.keys(hr.camps).forEach(function(id){var c=hr.camps[id];if(!c.sp)return;
+      h+='<div class="leak"><span>'+esc(names[id]||id)+'<br><small class="note" style="margin:0">'+(c.dead.length?'⚫ без корзин и заказов: '+c.dead.join(', ')+' ч':'✅ мёртвых часов нет')+(c.weak.length?' · 🟠 вдвое дороже: '+c.weak.join(', ')+' ч':'')+'</small></span><b>'+(c.deadSp?rub(c.deadSp):'')+'</b></div>'})}
+  $('a-hrs').innerHTML=h;
+}
+
 // ---- экраны ----
 function alerts(){
   var a=[],c=D.ctl,s=D.spend;
@@ -275,7 +338,7 @@ function alerts(){
   if(D.tips&&D.tips.list)D.tips.list.filter(function(x){return x.l==='r'&&x.s!=='rtn'}).forEach(function(x){a.unshift(['🔴',esc(x.t),esc(x.x),'','tips'])});
   D.prods.forEach(function(p,i){var n=p.list.filter(function(x){return x.vd==='red'}).length;
     if(p.lost>=300)a.push(['🔴','Слив рекламы: '+esc(p.name),rub(p.lost)+' на '+n+' кластер(ах) без окупаемости','warn','ads-'+i]);
-    if(p.e.profit<=0)a.push(['⛔','Товар в минусе до рекламы: '+esc(p.name),'проверь цену и себестоимость','','econ-'+i]);});
+    if(p.e.profit<=0&&!p.e.noPrice&&!oos(p))a.push(['⛔','Товар в минусе до рекламы: '+esc(p.name),'проверь цену и себестоимость','','econ-'+i]);});
   return a;
 }
 function rtnLine(x,noName){if(!x)return '';var f=x.free,t=noName?'':esc(x.m)+' — ';
@@ -307,13 +370,13 @@ function renderPer(){
 }
 function renderHome(){
   var s=D.spend;renderPer();
-  $('h-spend').innerHTML=s?tile('Потрачено',rub(s.today),D.lim?'лимит '+rub(D.lim):'')+tile('ДРР',s.todayRev?pct(s.today/s.todayRev):'—',s.todayRev?'':'заказов сегодня ещё мало'):'<div class="empty">Нет данных о рекламе</div>';
-  $('h-limbar').innerHTML=s&&D.lim?'<div class="bar"><i style="width:'+Math.min(100,s.today/D.lim*100)+'%;background:'+(s.today>=D.lim?'var(--bad)':s.today>=D.lim*0.8?'var(--warn)':'var(--good)')+'"></i></div>':'';
+  if(!renderSpend())$('h-spend').innerHTML=s?tile('Потрачено',rub(s.today),D.lim?'лимит '+rub(D.lim):'')+tile('ДРР',s.todayRev?pct(s.today/s.todayRev):'—',s.todayRev?'':'заказов сегодня ещё мало'):'<div class="empty">Нет данных о рекламе</div>';
+  if(!C().sp)$('h-limbar').innerHTML=s&&D.lim?'<div class="bar"><i style="width:'+Math.min(100,s.today/D.lim*100)+'%;background:'+(s.today>=D.lim?'var(--bad)':s.today>=D.lim*0.8?'var(--warn)':'var(--good)')+'"></i></div>':'';
   var a=alerts();
   $('h-alerts').innerHTML=a.length?a.map(function(x){return '<button class="alert '+x[3]+'" data-go="'+(x[4]||'')+'"><span class="ic">'+x[0]+'</span><span style="min-width:0"><b>'+x[1]+'</b><span>'+x[2]+'</span></span></button>'}).join(''):'<div class="alert ok"><span class="ic">✅</span><span><b>Всё спокойно</b><span>Слива рекламы, штрафов и тревог нет</span></span></div>';
   $('h-prods').innerHTML=D.prods.map(function(p,i){var e=p.e,ctl=D.ctl&&D.ctl.items[i];
-    return '<button class="item" data-go="ads-'+i+'"><div class="top"><span class="name">'+esc(p.name)+'</span><span class="pill '+(e.profit<=0?'p-red':!p.o?'p-wait':p.avgCpo<=e.target?'p-good':p.avgCpo<=e.maxOrder?'p-edge':'p-red')+'">'+(e.profit<=0?'⛔ в минусе':!p.o?'⏳ нет заказов с рекламы':p.avgCpo<=e.target?'🟢 реклама в норме':p.avgCpo<=e.maxOrder?'🟡 на грани':'🔴 реклама в минус')+'</span></div>'+
-    '<div class="nums"><div><small>Расход</small><b>'+rub(p.sp)+'</b></div><div><small>Заказы с рекл.</small><b>'+p.o+'</b></div><div><small>₽ за заказ</small><b>'+(p.o?rub(p.avgCpo):'—')+'</b></div><div><small>Прибыль/выкуп</small><b>'+rub(e.profit)+'</b></div></div>'+
+    return '<button class="item" data-go="ads-'+i+'"><div class="top"><span class="name">'+esc(p.name)+'</span><span class="pill '+(oos(p)?'p-oos':e.profit<=0?'p-red':!p.o?'p-wait':p.avgCpo<=e.target?'p-good':p.avgCpo<=e.maxOrder?'p-edge':'p-red')+'">'+(oos(p)?'📭 нет в наличии':e.profit<=0?'⛔ в минусе':!p.o?'⏳ нет заказов с рекламы':p.avgCpo<=e.target?'🟢 реклама в норме':p.avgCpo<=e.maxOrder?'🟡 на грани':'🔴 реклама в минус')+'</span></div>'+
+    '<div class="nums"><div><small>Расход</small><b>'+rub(p.sp)+'</b></div><div><small>Заказы с рекл.</small><b>'+p.o+'</b></div><div><small>₽ за заказ</small><b>'+(p.o?rub(p.avgCpo):'—')+'</b></div><div><small>Прибыль/выкуп</small><b>'+(oos(p)?'—':rub(e.profit))+'</b></div></div>'+
     (ctl&&ctl.n?'<div class="note">СПП '+pp(ctl.spp)+' · покупатель платит '+rub(ctl.fp)+' · заказов за 7 дней '+ctl.n+'</div>':'')+'</button>'}).join('');
 }
 function prodSeg(id){$(id).innerHTML=D.prods.map(function(p,i){return '<button class="'+(i===st.prod?'on':'')+'" data-prod="'+i+'">'+esc(p.name.split(' ')[0])+'</button>'}).join('')}
@@ -323,25 +386,27 @@ function renderAds(){
   $('a-kpi').innerHTML=tile('Расход',rub(p.sp),'')+tile('Заказы',String(p.o),'')+tile('₽ за заказ',p.o?rub(p.avgCpo):'—','цель до '+rub(e.target),!p.o?'':p.avgCpo<=e.target?'good':p.avgCpo<=e.maxOrder?'warn':'bad')+tile('Слив',rub(p.lost),p.sp?pct(p.lost/p.sp,0)+' расхода':'',p.lost>=300?'bad':'');
   var tot=p.list.reduce(function(a,b){return a+b.sp},0)||1,by={};p.list.forEach(function(a){by[a.vd]=(by[a.vd]||0)+a.sp});
   $('a-mix').innerHTML='<div class="bar">'+Object.keys(V).map(function(k){return by[k]?'<i style="width:'+(by[k]/tot*100)+'%;background:'+VC[k]+'"></i>':''}).join('')+'</div>';
-  var vt=e.profit<=0?'Товар в минусе ещё до рекламы — сначала цена или себестоимость.':!p.o?'Заказов с кластеров за период нет.':p.avgCpo<=e.target?'Реклама в норме.':p.avgCpo<=e.maxOrder?'На грани: убирай 🔴, ставки не повышай.':'Реклама в минус: заказ дороже предела '+rub(e.maxOrder)+'.';
+  var vt=oos(p)?'📭 Товара нет в наличии — реклама на него только тратит деньги; прибыль посчитаю после пополнения.':e.noPrice?'Цены нет: заказов за период нет — впиши цену в боте («💰 Экономика» → ✏️).':e.profit<=0?'Товар в минусе ещё до рекламы — сначала цена или себестоимость.':!p.o?'Заказов с кластеров за период нет.':p.avgCpo<=e.target?'Реклама в норме.':p.avgCpo<=e.maxOrder?'На грани: убирай 🔴, ставки не повышай.':'Реклама в минус: заказ дороже предела '+rub(e.maxOrder)+'.';
   if(p.recent)vt+=' ⏳ Рекламу меняли '+p.recent.ago+' дн. назад — выводы через неделю.';
   if(D.days===1)vt+=' Это полные вчерашние сутки (00:00–24:00 МСК). За один день данных мало — по кластерам почти везде ⏳; смотри расход и заказы, а решения принимай по 7 дням.';
   var av=D.more&&D.more.adv&&D.more.adv[p.nm];
   if(av&&av.top&&av.top.length)vt+=' 🎯 Советник ('+av.time+'): '+av.top.slice(0,3).map(function(x){return (x.k==='up'?'⬆ ':x.k==='down'?'⬇ ':'➖ ')+x.q+(x.nb?' '+x.bid+'→'+x.nb+' ₽':'')}).join('; ')+'. Применить — в боте «🎯 Советник».';
   $('a-verdict').textContent=vt;
   var cnt={};p.list.forEach(function(a){cnt[a.vd]=(cnt[a.vd]||0)+1});
-  $('a-chips').innerHTML='<button class="chip'+(!st.filt?' on':'')+'" data-f="">Все '+p.list.length+'</button>'+Object.keys(V).filter(function(k){return cnt[k]}).map(function(k){return '<button class="chip'+(st.filt===k?' on':'')+'" data-f="'+k+'">'+V[k][0]+' '+V[k][1]+' '+cnt[k]+'</button>'}).join('');
+  $('a-chips').innerHTML='<button class="chip'+(!st.filt?' on':'')+'" data-f="">Все '+p.list.length+'</button>'+Object.keys(V).filter(function(k){return cnt[k]}).map(function(k){return '<button class="chip'+(st.filt===k?' on':'')+'" data-f="'+k+'">'+V[k][0]+' '+V[k][1]+' '+cnt[k]+'</button>'}).join('')+(p.list.some(function(a){return a.gem})?'<button class="chip'+(st.filt==='gem'?' on':'')+'" data-f="gem">💎 Самородки '+p.list.filter(function(a){return a.gem}).length+'</button>':'');
   $('a-sort').value=st.sort;
-  var rows=p.list.filter(function(a){return !st.filt||a.vd===st.filt}).map(function(a){var r={};for(var k in a)r[k]=a[k];r.cpo=a.o?a.sp/a.o:Infinity;return r});
+  var rows=p.list.filter(function(a){return !st.filt||(st.filt==='gem'?a.gem:a.vd===st.filt)}).map(function(a){var r={};for(var k in a)r[k]=a[k];r.cpo=a.o?a.sp/a.o:Infinity;return r});
   rows.sort(function(a,b){return st.sort==='cpo'?a.cpo-b.cpo:b[st.sort]-a[st.sort]});
-  $('a-list').innerHTML=rows.length?rows.map(function(a){var v=V[a.vd]||V.wait;
+  $('a-list').innerHTML=rows.length?rows.map(function(a){var v=a.gem?['💎','Самородок','p-gem']:V[a.vd]||V.wait;
     return '<button class="item"><div class="top"><span class="name">'+esc(a.q)+'</span><span class="pill '+v[2]+'">'+v[0]+' '+v[1]+'</span></div>'+
-    '<div class="nums"><div><small>Расход</small><b>'+rub(a.sp)+'</b></div><div><small>Заказы</small><b>'+a.o+'</b></div><div><small>₽/заказ</small><b>'+(a.o?rub(a.cpo):'—')+'</b></div><div><small>Доля зак.</small><b>'+pct(a.share,0)+'</b></div></div>'+
-    '<div class="more">Показы '+(a.v||0).toLocaleString('ru-RU')+' · клики '+a.cl+' · CTR '+(a.v?pct(a.cl/a.v):'—')+' · корзины '+(a.atbs||0)+' · средняя позиция '+(a.pos||'—')+'<br>Почему: '+esc(a.why)+(a.cf?'<br>🔀 '+esc(a.cf):'')+'</div></button>'}).join(''):'<div class="empty">Нет кластеров</div>';
+    '<div class="nums"><div><small>Расход</small><b>'+rub(a.sp)+'</b></div><div><small>Заказы</small><b>'+a.o+'</b></div><div><small>₽/заказ</small><b>'+(a.o?rub(a.cpo):'—')+'</b></div><div><small>'+(okBe(a)?'Клик до':'Доля зак.')+'</small><b>'+(okBe(a)?rub(a.be):pct(a.share,0))+'</b></div></div>'+
+    '<div class="more">Показы '+(a.v||0).toLocaleString('ru-RU')+' · клики '+a.cl+' · CTR '+(a.v?pct(a.cl/a.v):'—')+' · корзины '+(a.atbs||0)+' · средняя позиция '+(a.pos||'—')+' · доля заказов '+pct(a.share,0)+(okBe(a)?' · клик окупается до '+rub(a.be):'')+'<br>Почему: '+esc(a.why)+(a.cf?'<br>🔀 '+esc(a.cf):'')+'</div></button>'}).join(''):'<div class="empty">Нет кластеров</div>';
+  renderLeak(p);renderHrs();
 }
 function renderEcon(){
   if(!D.prods||!D.prods.length){$('e-ladder').innerHTML='<div class="empty">Нет товаров в данных бота</div>';return}
   prodSeg('e-prod');var e=D.prods[st.prod].e,n=D.prods[st.prod].n,rest=e.P-e.com-e.logi-e.tax-e.profit;
+  $('e-note').textContent=oos(D.prods[st.prod])?'📭 Нет в наличии — цифры ниже по последней цене, точный расчёт после пополнения.':e.pSrc==='last'?'Цена — последняя на WB: заказов за период нет, может отличаться.':e.pSrc==='lastord'?'Цена — из последнего заказа: может отличаться.':e.noPrice?'⚠️ Цены нет — впиши в боте («💰 Экономика» → ✏️).':'';
   $('e-ladder').innerHTML='<div><span>Цена до СПП</span><b>'+rub(e.P)+'</b></div><div><span>Комиссия WB</span><b>−'+rub(e.com)+'</b></div><div><span>Логистика (выкуп '+pct(e.b,0)+')</span><b>−'+rub(e.logi)+'</b></div><div><span>Налог</span><b>−'+rub(e.tax)+'</b></div><div><span>Себестоимость и прочее</span><b>−'+rub(rest)+'</b></div><div class="total"><span>Прибыль до рекламы</span><b class="'+(e.profit>0?'up':'down')+'">'+rub(e.profit)+' · '+pct(e.margin,0)+'</b></div>'+
   (n&&n.buy>0?'<div><span>Реклама на выкуп'+(n.manual?' (прикидка)':'')+'</span><b>−'+rub(n.adPerBuy)+'</b></div><div class="total"><span>💵 Чистая прибыль</span><b class="'+(n.net>0?'up':'down')+'">'+rub(n.net)+' · '+pct(n.netMargin,0)+'</b></div><div><span>За период · ~'+Math.round(n.buy)+' выкуп.</span><b class="'+(n.netTotal>0?'up':'down')+'">'+rub(n.netTotal)+'</b></div>':'<div><span>Чистая прибыль</span><b>нет заказов за период</b></div>');
   $('e-ads').innerHTML=tile('🎯 Цель: заказ',rub(e.target),'клик до '+rub(e.targetCpc),'good')+tile('🎯 Цель: ДРР',pct(e.targetDrr),'')+tile('🔴 MAX: заказ',rub(e.maxOrder),'клик '+rub(e.maxCpc),'bad')+tile('🔴 MAX: ДРР',pct(e.maxDrr),'')+tile('Клик → заказ',pct(e.cr),'реклама '+pct(e.share,0)+' переходов');
