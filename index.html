@@ -33,6 +33,8 @@ h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute
 .card h3{margin:0 0 10px;font-size:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
 .tile{background:var(--tile);border-radius:10px;padding:10px;min-width:0}
+.pchart{display:block;width:100%;height:96px;margin:6px 0 2px}.pchart .l1{fill:none;stroke:var(--accent);stroke-width:2}.pchart .l2{fill:none;stroke:var(--muted);stroke-width:1.5;stroke-dasharray:4 3}.pchart .gl{stroke:var(--line);stroke-width:1}.pchart text{font-size:9px;fill:var(--muted)}.pchart .d1{fill:var(--accent)}.pchart .d2{fill:var(--muted)}
+.plg{display:flex;gap:12px;font-size:12px;color:var(--muted)}.plg i{display:inline-block;width:14px;height:0;border-top:2px solid var(--accent);vertical-align:middle;margin-right:4px}.plg i.b{border-top:2px dashed var(--muted)}
 .tile small{display:block;color:var(--muted);font-size:12px;line-height:1.3}
 .tile b{display:block;font-size:20px;line-height:1.25;margin-top:2px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
 .tile i{display:block;font-style:normal;color:var(--muted);font-size:12px;margin-top:2px;overflow-wrap:anywhere}
@@ -140,7 +142,7 @@ html.panel .app{padding-left:8px;padding-right:8px}html.panel nav button{font-si
 <script>
 // «Кабинет WB» на GitHub Pages. В этом файле нет ни ключей, ни данных магазина:
 // данные страница берёт у бота (Apps Script, ?p=data), вход — подпись Telegram, подпись ссылки или ключ расширения.
-var PAGE_VER='1.6 · 12.11.2026';
+var PAGE_VER='1.7 · 12.11.2026';
 var TG=(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initData)?Telegram.WebApp:null;
 var D=null,CACHE={},PEND={},MODE='fetch',SEQ=0,ERR='';
 var V={red:['🔴','Сливают','p-red'],keep:['🛡','Не трогать','p-keep'],edge:['🟡','На грани','p-edge'],good:['🟢','Работают','p-good'],wait:['⏳','Мало данных','p-wait']};
@@ -360,6 +362,20 @@ function renderTips(){
     (x.gap?'<div class="note">⚠️ Товара не будет с ≈ '+dmY(x.gap)+' до прихода партии</div>':'')+(x.cny?'<div class="note">🏮 Раньше обычного — из-за китайского Нового года</div>':'')+'</div>'}).join('')+'<p class="note">Расчёт от '+esc(b.time)+'. «✅ Заказал» и продажи в день — в боте: «📦 Закупка».</p></div>'}
   $('t-body').innerHTML=h;
 }
+/* 1.7 (A31): график мест в поиске — место 1 сверху; разрыв линии — товара не было в топ-100 */
+function posChart(h,nms){var W=300,H=90,P=8,L=18,n=h.length;if(!n)return '';
+  var mx=10;h.forEach(function(e){nms.forEach(function(nm){var o=e.ok&&e.ok[nm];if(o&&o[0]>mx)mx=o[0]})});mx=Math.ceil(mx/10)*10;
+  var x=function(i){return n<2?(W+L)/2:L+i*(W-L-P)/(n-1)},y=function(p){return P+(p-1)*(H-2*P)/(mx-1)};
+  var line=function(nm,c){var d='',on=false,last=null;h.forEach(function(e,i){var o=e.ok&&e.ok[nm],p=o&&o[0];if(p&&!e.err){d+=(on?'L':'M')+x(i).toFixed(1)+' '+y(p).toFixed(1)+' ';on=true;last=[i,p]}else on=false});
+    return (d?'<path d="'+d+'" class="l'+c+'"/>':'')+(last?'<circle cx="'+x(last[0]).toFixed(1)+'" cy="'+y(last[1]).toFixed(1)+'" r="3" class="d'+c+'"/>':'')};
+  return '<svg class="pchart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Места в поиске по дням"><line class="gl" x1="'+L+'" y1="'+y(1)+'" x2="'+W+'" y2="'+y(1)+'"/><line class="gl" x1="'+L+'" y1="'+y(mx)+'" x2="'+W+'" y2="'+y(mx)+'"/>'+
+    '<text x="0" y="'+(y(1)+3)+'">1</text><text x="0" y="'+(y(mx)+3)+'">'+mx+'</text>'+line(nms[0],1)+line(nms[1],2)+'</svg>'}
+function posCard(mo){var ps=(mo.pos||[]).filter(function(p){return p.h&&p.h.length});if(!ps.length)return '';
+  var nms=D.prods.map(function(p){return String(p.nm)});
+  return '<div class="card"><h3>📍 Места в поиске</h3><div class="plg"><span><i></i>'+esc(D.prods[0].name.split(' ')[0])+'</span><span><i class="b"></i>'+esc((D.prods[1]||{name:''}).name.split(' ')[0])+'</span></div>'+
+    ps.map(function(p){var e=p.h[p.h.length-1],cur=nms.map(function(nm,i){var o=e.ok&&e.ok[nm];return esc(D.prods[i].name.split(' ')[0])+' '+(e.err?'—':o&&o[0]?o[0]+'-е'+(o[2]?' · '+o[2]+' ч':''):'нет в топ-100')}).join(' · ');
+      return '<div style="margin-top:10px"><b>«'+esc(p.q)+'»</b><div class="note">'+cur+(e.mh?' · топ-10 ~'+e.mh+' ч':'')+' · '+esc(dm(e.d))+'</div>'+(p.h.length>1?posChart(p.h,nms):'<div class="note">График появится со второго дня замеров.</div>')+'</div>'}).join('')+
+    '<p class="note">Место на 1-й странице поиска (100 товаров) в регионе из ⚙️ расширения (по умолчанию Москва). Замер раз в день делает расширение Chrome; запросы — в боте «📦 Товар» → «📍 Позиции в поиске».</p></div>'}
 function renderCtl(){
   var c=D.ctl;
   if(!c){$('c-body').innerHTML='<div class="empty">Проверки ещё не было — в боте нажми «🛡 Контроль».</div>';return}
@@ -379,6 +395,7 @@ function renderCtl(){
     h+='<div class="card"><h3>'+esc(i.name)+'</h3><div class="tiles">'+u.join('')+'</div></div>'});
   if(c.log&&c.log.list&&c.log.list.length)h+='<div class="card"><h3>🚚 Логистика по неделям</h3>'+c.log.list.map(function(w){return '<div class="item" style="cursor:default"><div class="top"><span class="name">'+esc(w.label)+'</span><span class="pill '+(w.over>=1?'p-red':'p-good')+'">'+(w.over>=1?'переплата '+rub(w.over):'✅ по тарифу')+'</span></div><div class="nums"><div><small>Доставок</small><b>'+w.n+'</b></div><div><small>Списано</small><b>'+rub(w.sum)+'</b></div><div><small>По тарифу</small><b>'+rub(w.exp)+'</b></div><div><small>Дороже</small><b>'+(w.bad||0)+'</b></div></div></div>'}).join('')+'<p class="note">Сверка от '+esc(c.log.time)+'. Подробно — «🛡 Контроль» → «🚚 Логистика» в боте.</p></div>';
   var mo=D.more||{};
+  h+=posCard(mo);
   if(mo.sppw){var sw=mo.sppw;h+='<div class="card"><h3>🏷 СПП на витрине</h3><div class="tiles">'+D.prods.map(function(p){var x=sw[p.nm];return x?tile(p.name.split(' ')[0],pp(x.spp),'покупатель '+rub(x.bp)+' · кошелёк ≈ '+rub(x.wal)):tile(p.name.split(' ')[0],'—','нет на витрине')}).join('')+'</div><p class="note">Как в Evirma: 1 − цена покупателя ÷ твоя цена со скидкой. Проверка '+esc(sw._t||'')+', раз в 30 минут.</p></div>'}
   if(mo.cx&&mo.cx.n){var cx=mo.cx,R={pvz:'📦 Отказ на ПВЗ',wb:'⏰ Отменил WB',nostock:'🚫 Нулевой остаток',client1h:'↩️ Передумал в первый час',seller:'✋ Отменил продавец',defect:'🔧 Брак'};
     h+='<div class="card"><h3>❌ Отмены FBS за 30 дней</h3><div class="tiles">'+tile('Заказов',String(cx.n),'')+Object.keys(cx.by).sort(function(a,b){return cx.by[b]-cx.by[a]}).map(function(k){return tile(R[k]||k,String(cx.by[k]),pct(cx.by[k]/cx.n,0),k==='wb'||k==='nostock'?'bad':k==='pvz'&&cx.by[k]/cx.n>=0.1?'warn':'')}).join('')+'</div><p class="note">'+esc(cx.time)+'. Подробно — «🛡 Контроль» → «❌ Отмены» в боте.</p></div>'}
