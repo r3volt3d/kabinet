@@ -23,6 +23,9 @@ header small{display:block;font-size:12px;font-weight:400;color:var(--muted)}
 .seg{display:inline-flex;background:var(--tile);border-radius:10px;padding:3px;gap:2px}
 .seg a,.seg button{border:0;background:transparent;padding:6px 10px;border-radius:8px;font-weight:600;font-size:13px;color:var(--muted);text-decoration:none;cursor:pointer;min-height:32px;display:inline-flex;align-items:center}
 .seg .on{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.seg button{position:relative;justify-content:center;min-width:48px}
+.seg .ld{color:var(--ink)}.seg .ld::after{content:'';position:absolute;left:25%;right:25%;bottom:3px;height:2px;border-radius:1px;background:var(--accent);animation:ldp 1s ease-in-out infinite}
+@keyframes ldp{0%,100%{opacity:.25}50%{opacity:1}}
 .screen{display:none}.screen.on{display:block;animation:fade .18s ease}
 @keyframes fade{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}
 h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:18px 2px 8px;font-weight:700}
@@ -130,7 +133,7 @@ html.panel .app{padding-left:8px;padding-right:8px}html.panel nav button{font-si
 <script>
 // «Кабинет WB» на GitHub Pages. В этом файле нет ни ключей, ни данных магазина:
 // данные страница берёт у бота (Apps Script, ?p=data), вход — подпись Telegram, подпись ссылки или ключ расширения.
-var PAGE_VER='1.3 · 12.11.2026';
+var PAGE_VER='1.5 · 12.11.2026';
 var TG=(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initData)?Telegram.WebApp:null;
 var D=null,CACHE={},PEND={},MODE='fetch',SEQ=0,ERR='';
 var V={red:['🔴','Сливают','p-red'],keep:['🛡','Не трогать','p-keep'],edge:['🟡','На грани','p-edge'],good:['🟢','Работают','p-good'],wait:['⏳','Мало данных','p-wait']};
@@ -228,13 +231,18 @@ function getData(d){
     return viaJsonp(d).then(function(o){MODE='jsonp';return o});
   });
 }
+// Последние данные храним в браузере: страница открывается сразу, свежие подтягиваются в фоне
+function lsKey(d){return 'kab_c'+d+'_'+BID.slice(0,12)}
+function saveLocal(d,o){try{localStorage.setItem(lsKey(d),JSON.stringify(o))}catch(e){}}
+function readLocal(d){try{var o=JSON.parse(localStorage.getItem(lsKey(d))||'null');return o&&o.prods?o:null}catch(e){return null}}
+var STALE={};
 function load(d,ok,fail){
   if(CACHE[d]){ok&&ok();return}
   if(PEND[d]){PEND[d].push([ok,fail]);return}
   PEND[d]=[[ok,fail]];
   function end(err){var q=PEND[d]||[];delete PEND[d];q.forEach(function(x){if(!err&&CACHE[d]){x[0]&&x[0]()}else{x[1]&&x[1](err||{message:'нет данных'})}})}
   getData(d).then(function(o){
-    if(o&&o.ok&&o.data){CACHE[d]=o.data;end()}
+    if(o&&o.ok&&o.data){CACHE[d]=o.data;delete STALE[d];saveLocal(d,o.data);end()}
     else end({message:(o&&o.error)||'бот ответил пустым',auth:o&&o.auth===false});
   },function(e){end({message:(e&&e.message)||'нет связи с ботом'})});
 }
@@ -251,11 +259,17 @@ function alerts(){
     if(c.log&&c.log.over>=30)a.push(['🚚','Переплата за логистику: '+rub(c.log.over),'за '+c.log.weeks+' нед. — склад считает дороже тарифа по карточке','warn','ctl']);
     if(c.comm&&Math.abs(c.comm.wb-c.comm.mine)>=0.05)a.push(['🧾','Комиссия WB изменилась: '+pp(c.comm.wb),'в «Экономике» стоит '+esc(c.comm.mine)+'%','warn','econ']);
   }
+  var r=D.rtn;
+  if(r&&r.wait&&r.wait.length){var u=r.wait.filter(function(x){return x.urgent});
+    a.push(['📍',(u.length?'Срочно забрать возвраты: '+u.length:'Возвраты ждут на ПВЗ: '+r.wait.length),rtnLine(u[0]||r.wait[0])+(r.wait.length>1?' · всего '+r.wait.length:''),u.length?'':'warn','ctl']);}
   D.prods.forEach(function(p,i){var n=p.list.filter(function(x){return x.vd==='red'}).length;
     if(p.lost>=300)a.push(['🔴','Слив рекламы: '+esc(p.name),rub(p.lost)+' на '+n+' кластер(ах) без окупаемости','warn','ads-'+i]);
     if(p.e.profit<=0)a.push(['⛔','Товар в минусе до рекламы: '+esc(p.name),'проверь цену и себестоимость','','econ-'+i]);});
   return a;
 }
+function rtnLine(x,noName){if(!x)return '';var f=x.free,t=noName?'':esc(x.m)+' — ';
+  t+=f==null?'':f>0?'бесплатно ещё '+f+' дн.':f===0?'сегодня последний бесплатный день':'уже платно, 10 ₽/день';
+  if(x.left!=null)t+=' · крайний срок '+dm(x.exp)+(x.left<=0?' — сегодня!':' ('+x.left+' дн.)');return t}
 function netOf(x){
   if(!x||!x.prods)return null;var t=0,b=0,ad=0,has=false;
   x.prods.forEach(function(p){var n=p.n;if(n&&n.buy>0){has=true;t+=n.netTotal;b+=n.buy;ad+=n.ad}});
@@ -277,7 +291,7 @@ function renderPer(){
   if(r.hasBuy)t.push(tile('Реклама на выкуп',rub(r.ad/r.buy),'прибыль/выкуп '+rub(r.net/r.buy)));
   $('h-per-tiles').innerHTML=t.join('');
   var cmp=[[1,'вчера'],[7,'7\u00a0дн.'],[30,'30\u00a0дн.']].filter(function(q){return q[0]!==x.days}).map(function(q){
-    var c=CACHE[q[0]];if(!c)return q[1]+' …';var s=perSum(c);return q[1]+' '+(s.hasBuy?rub(s.net):'—')});
+    var c=CACHE[q[0]];if(!c)return q[1]+' (считаю)';var s=perSum(c);return q[1]+' '+(s.hasBuy?rub(s.net):'—')});
   $('h-per-cmp').textContent=r.hasN?'Чистая прибыль для сравнения: '+cmp.join(' · '):'';
 }
 function renderHome(){
@@ -293,6 +307,7 @@ function renderHome(){
 }
 function prodSeg(id){$(id).innerHTML=D.prods.map(function(p,i){return '<button class="'+(i===st.prod?'on':'')+'" data-prod="'+i+'">'+esc(p.name.split(' ')[0])+'</button>'}).join('')}
 function renderAds(){
+  if(!D.prods||!D.prods.length){$('a-list').innerHTML='<div class="empty">Нет товаров в данных бота</div>';return}
   prodSeg('a-prod');var p=D.prods[st.prod],e=p.e;
   $('a-kpi').innerHTML=tile('Расход',rub(p.sp),'')+tile('Заказы',String(p.o),'')+tile('₽ за заказ',p.o?rub(p.avgCpo):'—','цель до '+rub(e.target),!p.o?'':p.avgCpo<=e.target?'good':p.avgCpo<=e.maxOrder?'warn':'bad')+tile('Слив',rub(p.lost),p.sp?pct(p.lost/p.sp,0)+' расхода':'',p.lost>=300?'bad':'');
   var tot=p.list.reduce(function(a,b){return a+b.sp},0)||1,by={};p.list.forEach(function(a){by[a.vd]=(by[a.vd]||0)+a.sp});
@@ -312,6 +327,7 @@ function renderAds(){
     '<div class="more">Показы '+(a.v||0).toLocaleString('ru-RU')+' · клики '+a.cl+' · CTR '+(a.v?pct(a.cl/a.v):'—')+' · корзины '+(a.atbs||0)+' · средняя позиция '+(a.pos||'—')+'<br>Почему: '+esc(a.why)+(a.cf?'<br>🔀 '+esc(a.cf):'')+'</div></button>'}).join(''):'<div class="empty">Нет кластеров</div>';
 }
 function renderEcon(){
+  if(!D.prods||!D.prods.length){$('e-ladder').innerHTML='<div class="empty">Нет товаров в данных бота</div>';return}
   prodSeg('e-prod');var e=D.prods[st.prod].e,n=D.prods[st.prod].n,rest=e.P-e.com-e.logi-e.tax-e.profit;
   $('e-ladder').innerHTML='<div><span>Цена до СПП</span><b>'+rub(e.P)+'</b></div><div><span>Комиссия WB</span><b>−'+rub(e.com)+'</b></div><div><span>Логистика (выкуп '+pct(e.b,0)+')</span><b>−'+rub(e.logi)+'</b></div><div><span>Налог</span><b>−'+rub(e.tax)+'</b></div><div><span>Себестоимость и прочее</span><b>−'+rub(rest)+'</b></div><div class="total"><span>Прибыль до рекламы</span><b class="'+(e.profit>0?'up':'down')+'">'+rub(e.profit)+' · '+pct(e.margin,0)+'</b></div>'+
   (n&&n.buy>0?'<div><span>Реклама на выкуп'+(n.manual?' (прикидка)':'')+'</span><b>−'+rub(n.adPerBuy)+'</b></div><div class="total"><span>💵 Чистая прибыль</span><b class="'+(n.net>0?'up':'down')+'">'+rub(n.net)+' · '+pct(n.netMargin,0)+'</b></div><div><span>За период · ~'+Math.round(n.buy)+' выкуп.</span><b class="'+(n.netTotal>0?'up':'down')+'">'+rub(n.netTotal)+'</b></div>':'<div><span>Чистая прибыль</span><b>нет заказов за период</b></div>');
@@ -325,7 +341,10 @@ function renderCtl(){
   t.push(c.sus.length?tile('Подозрительные заказы',c.sus.length+' ⚠️','за 30 дней','warn'):tile('Подозрительные заказы','нет ✅','за 30 дней','good'));
   if(c.comm){var ok=Math.abs(c.comm.wb-c.comm.mine)<0.05;t.push(tile('Комиссия FBS',pp(c.comm.wb)+(ok?' ✅':' ⚠️'),ok?'совпадает с «Экономикой»':'в «Экономике» '+esc(c.comm.mine)+'%',ok?'good':'warn'))}
   if(c.log)t.push(c.log.over>=1?tile('Переплата за логистику',rub(c.log.over),'за '+c.log.weeks+' нед. отчётов','bad'):tile('Переплата за логистику','нет ✅',c.log.weeks+' нед. отчётов'+(c.log.save>=1?' · экономия '+rub(c.log.save):''),'good'));
-  var h='<div class="card"><h3>Кабинет</h3><div class="tiles">'+t.join('')+'</div>'+(c.sus.length?'<ul class="plain" style="margin-top:10px">'+c.sus.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>':'')+'</div>';
+  var h='',r=D.rtn;
+  if(r){h+='<div class="card"><h3>📍 Возвраты на ПВЗ</h3>'+(r.wait&&r.wait.length?r.wait.map(function(x){return '<div class="item" style="cursor:default"><div class="top"><span class="name">'+esc(x.m)+'</span><span class="pill '+(x.urgent?'p-red':'p-edge')+'">'+(x.left!=null?'до '+dm(x.exp):'ждёт')+'</span></div><div class="note">'+rtnLine(x,1)+'</div><div class="note">🏠 '+esc(x.addr||'адрес — в кабинете WB')+'</div></div>'}).join(''):'<div class="empty">На ПВЗ ничего не ждёт ✅</div>')+
+    (r.way?'<p class="note">🚚 В пути ещё '+r.way+' шт.</p>':'')+'<p class="note">3 дня бесплатно, потом 10 ₽/день, на 8-й день — утилизация. Проверка от '+esc(r.time)+'.</p></div>'}
+  h+='<div class="card"><h3>Кабинет</h3><div class="tiles">'+t.join('')+'</div>'+(c.sus.length?'<ul class="plain" style="margin-top:10px">'+c.sus.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>':'')+'</div>';
   c.items.forEach(function(i){var u=[];
     if(i.n){var ch=i.prev?i.spp-i.prev:0;u.push(tile('СПП за 7 полных дней',pp(i.spp)+(Math.abs(ch)>=0.5?(ch>0?' <span class="up">▲</span>':' <span class="down">▼</span>'):''),(i.prev?'неделей раньше '+pp(i.prev):'')+(i.few?(i.prev?' · ':'')+'⚠️ мало заказов, цифра неточная':''),ch<=-3?'bad':i.few?'warn':''));
       if(i.pd)u.push(tile('Цена до СПП',rub(i.pd),'покупатель платит '+rub(i.fp)));u.push(tile('Заказов за 7 дней',String(i.n),''))}else u.push(tile('Заказы за 7 дней','нет',''));
@@ -346,7 +365,7 @@ function skeleton(){
 }
 function render(){
   var days=D?D.days:st.days;
-  $('period').innerHTML=[1,7,30].map(function(d){return '<button class="'+(days===d?'on':'')+'" data-per="'+d+'">'+(st.loading===d?'…':d===1?'Вчера':d+' дн.')+'</button>'}).join('');
+  $('period').innerHTML=[1,7,30].map(function(d){var c=(days===d?'on':'')+(st.loading===d||(PEND[d]&&d===st.days)?' ld':'');return '<button class="'+c+'" data-per="'+d+'"'+(st.loading===d?' aria-busy="true"':'')+'>'+(d===1?'Вчера':d+'\u00a0дн.')+'</button>'}).join('');
   var a=D?alerts().length:0;
   $('nav').innerHTML=TABS.map(function(t){return '<button class="'+(st.tab===t[0]?'on':'')+'" data-tab="'+t[0]+'"><span class="e">'+t[1]+'</span>'+t[2]+(t[0]==='home'&&a?'<span class="dot">'+a+'</span>':'')+'</button>'}).join('');
   $('err').style.display=ERR?'block':'none';$('err').innerHTML=ERR;
@@ -372,19 +391,27 @@ function errText(e){
 function setPeriod(d){
   if(D&&d===D.days)return;
   st.days=d;ls('kab_d',String(d));
-  if(CACHE[d]){D=CACHE[d];render();return}
+  if(CACHE[d]){D=CACHE[d];render();if(STALE[d])refreshStale(d);return}
   if(!D){render();return}
-  st.loading=d;render();$('loadnote').style.display='block';$('loadnote').textContent='Загружаю данные '+perTxt(d)+'… бот считает 5–20 секунд, дальше переключение мгновенное.';
+  var loc=readLocal(d);
+  if(loc){CACHE[d]=loc;STALE[d]=1;D=loc;render();refreshStale(d);return}
+  st.loading=d;render();$('loadnote').style.display='block';$('loadnote').textContent='Загружаю '+perTxt(d)+'. Обычно 2–5 секунд; если бот ещё не посчитал период заранее — до 20 секунд. Потом переключение мгновенное.';
   load(d,function(){if(st.loading!==d)return;st.loading=0;$('loadnote').style.display='none';D=CACHE[d];render()},
     function(e){if(st.loading!==d)return;st.loading=0;$('loadnote').textContent='Не получилось загрузить '+perTxt(d)+': '+((e&&e.message)||'ошибка')+'. Нажми ещё раз.';render()});
 }
-function prefetch(){var q=[7,30,1].filter(function(d){return !CACHE[d]});(function next(){if(D&&st.tab==='home')renderPer();var d=q.shift();if(d)load(d,next,next)})()}
+function refreshStale(d){if(PEND[d])return;if(D&&D.days===d)$('sub').textContent='Данные от '+(CACHE[d]&&CACHE[d].time||'')+' · обновляю…';
+  var keep=CACHE[d];delete CACHE[d];
+  load(d,function(){if(D&&D.days===d){D=CACHE[d];render()}else if(D&&st.tab==='home')renderPer()},function(e){CACHE[d]=keep;if(D&&D.days===d)$('sub').textContent='Данные от '+keep.time+(e&&e.auth?' · вход устарел — открой «📱 Кабинет» из бота':' · не обновились, попробую позже')})}
+// все периоды — сразу и параллельно (бот считает их заранее раз в 30 минут)
+function prefetch(){[7,30,1].forEach(function(d){if(!CACHE[d]||STALE[d]){if(STALE[d])refreshStale(d);else load(d,function(){if(D&&st.tab==='home')renderPer()},function(){})}})}
 function start(){
   if(!EXEC){ERR='⚠️ Не знаю адрес бота. Открой «📱 Кабинет» кнопкой в Telegram-боте (или «🌐 В браузере»).';render();return}
   if(!AUTH){ERR='⚠️ Нет входа. Открой «📱 Кабинет» кнопкой в Telegram-боте, нажми «🌐 В браузере» или открой из расширения Chrome.';render();return}
   ERR='';render();
   var d=st.days;
-  load(d,function(){D=CACHE[d];render();setTimeout(prefetch,300)},function(e){ERR=errText(e);render()});
+  [1,7,30].forEach(function(x){var o=readLocal(x);if(o&&!CACHE[x]){CACHE[x]=o;STALE[x]=1}});
+  if(CACHE[d]){D=CACHE[d];render();prefetch();return}   // показали прошлое сразу, свежее — в фоне
+  load(d,function(){D=CACHE[d];render();setTimeout(prefetch,100)},function(e){ERR=errText(e);render()});
 }
 document.addEventListener('click',function(ev){
   var b=ev.target.closest('button,a');if(!b)return;
