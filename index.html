@@ -81,7 +81,8 @@ html.panel .app{padding-left:8px;padding-right:8px}html.panel nav button{font-si
 <div id="skel" style="display:none"></div>
 
 <section class="screen" id="s-home">
-<div class="card"><h3>Реклама сегодня</h3><div class="tiles" id="h-spend"></div><div id="h-limbar"></div></div>
+<div class="card"><h3 id="h-per-t">Итоги</h3><div class="tiles" id="h-per-tiles"></div><p class="note" id="h-per-cmp"></p><p class="note">Период — кнопками вверху. Чистая прибыль — после всех расходов и рекламы; выкупы — оценка.</p></div>
+<div class="card"><h3>Сейчас · реклама сегодня <small class="note" style="margin:0;font-weight:400">не зависит от периода</small></h3><div class="tiles" id="h-spend"></div><div id="h-limbar"></div></div>
 <h2>Требует внимания</h2><div id="h-alerts"></div>
 <h2 id="h-per">Товары</h2><div id="h-prods"></div>
 </section>
@@ -129,7 +130,7 @@ html.panel .app{padding-left:8px;padding-right:8px}html.panel nav button{font-si
 <script>
 // «Кабинет WB» на GitHub Pages. В этом файле нет ни ключей, ни данных магазина:
 // данные страница берёт у бота (Apps Script, ?p=data), вход — подпись Telegram, подпись ссылки или ключ расширения.
-var PAGE_VER='1.0 · 12.11.2026';
+var PAGE_VER='1.3 · 12.11.2026';
 var TG=(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initData)?Telegram.WebApp:null;
 var D=null,CACHE={},PEND={},MODE='fetch',SEQ=0,ERR='';
 var V={red:['🔴','Сливают','p-red'],keep:['🛡','Не трогать','p-keep'],edge:['🟡','На грани','p-edge'],good:['🟢','Работают','p-good'],wait:['⏳','Мало данных','p-wait']};
@@ -139,7 +140,7 @@ function $(id){return document.getElementById(id)}
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
 function ss(k,v){try{if(v===undefined)return sessionStorage.getItem(k);sessionStorage.setItem(k,v)}catch(e){return null}}
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
-function rub(n){return isFinite(n)?Math.round(n).toLocaleString('ru-RU')+' ₽':'—'}
+function rub(n){return isFinite(n)?Math.round(n).toLocaleString('ru-RU')+'\u00a0₽':'—'}
 function pct(x,d){return isFinite(x)?(x*100).toLocaleString('ru-RU',{maximumFractionDigits:d==null?1:d})+'%':'—'}
 function pp(x){return (Math.round((+x||0)*10)/10).toLocaleString('ru-RU')+'%'}
 function vol(v){return (Math.round((+v||0)*100)/100).toLocaleString('ru-RU')+' л'}
@@ -255,9 +256,33 @@ function alerts(){
     if(p.e.profit<=0)a.push(['⛔','Товар в минусе до рекламы: '+esc(p.name),'проверь цену и себестоимость','','econ-'+i]);});
   return a;
 }
+function netOf(x){
+  if(!x||!x.prods)return null;var t=0,b=0,ad=0,has=false;
+  x.prods.forEach(function(p){var n=p.n;if(n&&n.buy>0){has=true;t+=n.netTotal;b+=n.buy;ad+=n.ad}});
+  return has?{t:t,b:b,ad:ad}:{t:0,b:0,ad:0,none:true};
+}
+function perSum(x){
+  var r={ad:0,ord:0,buy:0,net:0,sum:0,adO:0,hasN:false,hasBuy:false};
+  x.prods.forEach(function(p){var n=p.n;r.adO+=p.o||0;
+    if(n){r.hasN=true;r.ad+=n.ad||0;r.ord+=n.ord||0;if(n.buy>0){r.hasBuy=true;r.buy+=n.buy;r.net+=n.netTotal}if(n.drr>0)r.sum+=n.ad/n.drr}
+    else r.ad+=p.sp||0});
+  return r;
+}
+function renderPer(){
+  var x=D,r=perSum(x),t=[];
+  $('h-per-t').textContent='Итоги '+perTxt(x.days);
+  if(r.hasN)t.push(r.hasBuy?tile('💵 Чистая прибыль',rub(r.net),'~'+Math.round(r.buy)+'\u00a0выкуп. после рекламы',r.net>0?'good':'bad'):tile('💵 Чистая прибыль','—','заказов нет'));
+  t.push(tile('Реклама',rub(r.ad),r.sum?'ДРР '+pct(r.ad/r.sum):''));
+  t.push(tile('Заказы',String(r.hasN?r.ord:r.adO),r.hasN?'с рекламы '+r.adO:'с рекламы'));
+  if(r.hasBuy)t.push(tile('Реклама на выкуп',rub(r.ad/r.buy),'прибыль/выкуп '+rub(r.net/r.buy)));
+  $('h-per-tiles').innerHTML=t.join('');
+  var cmp=[[1,'вчера'],[7,'7\u00a0дн.'],[30,'30\u00a0дн.']].filter(function(q){return q[0]!==x.days}).map(function(q){
+    var c=CACHE[q[0]];if(!c)return q[1]+' …';var s=perSum(c);return q[1]+' '+(s.hasBuy?rub(s.net):'—')});
+  $('h-per-cmp').textContent=r.hasN?'Чистая прибыль для сравнения: '+cmp.join(' · '):'';
+}
 function renderHome(){
-  var s=D.spend;
-  $('h-spend').innerHTML=s?tile('Потрачено сегодня',rub(s.today),D.lim?'лимит '+rub(D.lim):'')+tile('ДРР сегодня',s.todayRev?pct(s.today/s.todayRev):'—','')+tile('Вчера',rub(s.yest),'')+tile('За месяц',rub(s.month),s.monthRev?'ДРР '+pct(s.month/s.monthRev):''):'<div class="empty">Нет данных о рекламе</div>';
+  var s=D.spend;renderPer();
+  $('h-spend').innerHTML=s?tile('Потрачено',rub(s.today),D.lim?'лимит '+rub(D.lim):'')+tile('ДРР',s.todayRev?pct(s.today/s.todayRev):'—',s.todayRev?'':'заказов сегодня ещё мало'):'<div class="empty">Нет данных о рекламе</div>';
   $('h-limbar').innerHTML=s&&D.lim?'<div class="bar"><i style="width:'+Math.min(100,s.today/D.lim*100)+'%;background:'+(s.today>=D.lim?'var(--bad)':s.today>=D.lim*0.8?'var(--warn)':'var(--good)')+'"></i></div>':'';
   var a=alerts();
   $('h-alerts').innerHTML=a.length?a.map(function(x){return '<button class="alert '+x[3]+'" data-go="'+(x[4]||'')+'"><span class="ic">'+x[0]+'</span><span style="min-width:0"><b>'+x[1]+'</b><span>'+x[2]+'</span></span></button>'}).join(''):'<div class="alert ok"><span class="ic">✅</span><span><b>Всё спокойно</b><span>Слива рекламы, штрафов и тревог нет</span></span></div>';
@@ -302,8 +327,9 @@ function renderCtl(){
   if(c.log)t.push(c.log.over>=1?tile('Переплата за логистику',rub(c.log.over),'за '+c.log.weeks+' нед. отчётов','bad'):tile('Переплата за логистику','нет ✅',c.log.weeks+' нед. отчётов'+(c.log.save>=1?' · экономия '+rub(c.log.save):''),'good'));
   var h='<div class="card"><h3>Кабинет</h3><div class="tiles">'+t.join('')+'</div>'+(c.sus.length?'<ul class="plain" style="margin-top:10px">'+c.sus.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>':'')+'</div>';
   c.items.forEach(function(i){var u=[];
-    if(i.n){var ch=i.prev?i.spp-i.prev:0;u.push(tile('СПП за 7 дней',pp(i.spp)+(Math.abs(ch)>=0.5?(ch>0?' <span class="up">▲</span>':' <span class="down">▼</span>'):''),i.prev?'неделей раньше '+pp(i.prev):'',ch<=-3?'bad':''));
-      u.push(tile('Цена до СПП',rub(i.pd),'покупатель платит '+rub(i.fp)));u.push(tile('Заказов за 7 дней',String(i.n),''))}else u.push(tile('Заказы за 7 дней','нет',''));
+    if(i.n){var ch=i.prev?i.spp-i.prev:0;u.push(tile('СПП за 7 полных дней',pp(i.spp)+(Math.abs(ch)>=0.5?(ch>0?' <span class="up">▲</span>':' <span class="down">▼</span>'):''),(i.prev?'неделей раньше '+pp(i.prev):'')+(i.few?(i.prev?' · ':'')+'⚠️ мало заказов, цифра неточная':''),ch<=-3?'bad':i.few?'warn':''));
+      if(i.pd)u.push(tile('Цена до СПП',rub(i.pd),'покупатель платит '+rub(i.fp)));u.push(tile('Заказов за 7 дней',String(i.n),''))}else u.push(tile('Заказы за 7 дней','нет',''));
+    if(i.last)u.push(tile('Последний заказ',pp(i.last.spp),'СПП, '+esc(dm(i.last.d))+' — ближе всего к витрине'));
     var grew=i.volPrev&&i.vol>i.volPrev+0.001;u.push(i.vol?tile('Замер склада',vol(i.vol)+(grew?' ⚠️':''),grew?'было '+vol(i.volPrev):'без изменений',grew?'bad':''):tile('Замер склада','нет ✅','','good'));
     h+='<div class="card"><h3>'+esc(i.name)+'</h3><div class="tiles">'+u.join('')+'</div></div>'});
   if(c.log&&c.log.list&&c.log.list.length)h+='<div class="card"><h3>🚚 Логистика по неделям</h3>'+c.log.list.map(function(w){return '<div class="item" style="cursor:default"><div class="top"><span class="name">'+esc(w.label)+'</span><span class="pill '+(w.over>=1?'p-red':'p-good')+'">'+(w.over>=1?'переплата '+rub(w.over):'✅ по тарифу')+'</span></div><div class="nums"><div><small>Доставок</small><b>'+w.n+'</b></div><div><small>Списано</small><b>'+rub(w.sum)+'</b></div><div><small>По тарифу</small><b>'+rub(w.exp)+'</b></div><div><small>Дороже</small><b>'+(w.bad||0)+'</b></div></div></div>'}).join('')+'<p class="note">Сверка от '+esc(c.log.time)+'. Подробно — «🛡 Контроль» → «🚚 Логистика» в боте.</p></div>';
@@ -352,7 +378,7 @@ function setPeriod(d){
   load(d,function(){if(st.loading!==d)return;st.loading=0;$('loadnote').style.display='none';D=CACHE[d];render()},
     function(e){if(st.loading!==d)return;st.loading=0;$('loadnote').textContent='Не получилось загрузить '+perTxt(d)+': '+((e&&e.message)||'ошибка')+'. Нажми ещё раз.';render()});
 }
-function prefetch(){var q=[7,30,1].filter(function(d){return !CACHE[d]});(function next(){var d=q.shift();if(d)load(d,next,next)})()}
+function prefetch(){var q=[7,30,1].filter(function(d){return !CACHE[d]});(function next(){if(D&&st.tab==='home')renderPer();var d=q.shift();if(d)load(d,next,next)})()}
 function start(){
   if(!EXEC){ERR='⚠️ Не знаю адрес бота. Открой «📱 Кабинет» кнопкой в Telegram-боте (или «🌐 В браузере»).';render();return}
   if(!AUTH){ERR='⚠️ Нет входа. Открой «📱 Кабинет» кнопкой в Telegram-боте, нажми «🌐 В браузере» или открой из расширения Chrome.';render();return}
