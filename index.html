@@ -45,6 +45,8 @@ h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute
 .alert.warn{background:var(--warn-s)}.alert.ok{background:var(--good-s);cursor:default}
 .alert b{display:block}.alert span{font-size:13px;color:var(--muted)}
 .alert .ic{font-size:20px;line-height:1}
+.alert.info{background:var(--tile);cursor:default}.tipsec{font-size:12px;font-weight:700;color:var(--muted);margin:10px 2px 6px;text-transform:uppercase;letter-spacing:.04em}
+.alert .todo{display:block;margin-top:4px;color:var(--ink);font-size:13px}
 .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:8px;scrollbar-width:none}
 .chip{flex:0 0 auto;border:1px solid var(--line);background:var(--card);padding:6px 12px;border-radius:99px;cursor:pointer;font-size:13px;font-weight:600;min-height:34px}
 .chip.on{border-color:var(--accent);background:var(--soft);color:var(--accent)}
@@ -66,7 +68,7 @@ h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute
 .sel{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:6px 10px;font:inherit;font-size:13px;color:var(--ink);min-height:34px}
 .row2{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
 nav{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
-nav .in{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+nav .in{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(6,1fr)}
 nav button{border:0;background:transparent;height:var(--nav);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;color:var(--muted);font-size:11px;font-weight:600;position:relative}
 nav button .e{font-size:21px;line-height:1;filter:grayscale(1);opacity:.75}
 nav button.on{color:var(--accent)}nav button.on .e{filter:none;opacity:1}
@@ -112,6 +114,11 @@ html.panel .app{padding-left:8px;padding-right:8px}html.panel nav button{font-si
 <div id="c-body"></div>
 </section>
 
+<section class="screen" id="s-tips">
+<div id="t-body"></div>
+<p class="note">Сообщением в Telegram приходят только 🔴. Отметить «✅ сделал», отложить или скрыть — в боте: «💡 Советы».</p>
+</section>
+
 <section class="screen" id="s-more">
 <h2>Журнал изменений</h2><div id="m-jr"></div>
 <h2>Как читать</h2>
@@ -133,12 +140,12 @@ html.panel .app{padding-left:8px;padding-right:8px}html.panel nav button{font-si
 <script>
 // «Кабинет WB» на GitHub Pages. В этом файле нет ни ключей, ни данных магазина:
 // данные страница берёт у бота (Apps Script, ?p=data), вход — подпись Telegram, подпись ссылки или ключ расширения.
-var PAGE_VER='1.5 · 12.11.2026';
+var PAGE_VER='1.6 · 12.11.2026';
 var TG=(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initData)?Telegram.WebApp:null;
 var D=null,CACHE={},PEND={},MODE='fetch',SEQ=0,ERR='';
 var V={red:['🔴','Сливают','p-red'],keep:['🛡','Не трогать','p-keep'],edge:['🟡','На грани','p-edge'],good:['🟢','Работают','p-good'],wait:['⏳','Мало данных','p-wait']};
 var VC={red:'var(--bad)',keep:'var(--keep)',edge:'var(--warn)',good:'var(--good)',wait:'var(--muted)'};
-var TABS=[['home','🏠','Главная'],['ads','📊','Реклама'],['econ','💰','Экономика'],['ctl','🛡','Контроль'],['more','⚙️','Ещё']];
+var TABS=[['home','🏠','Главная'],['tips','💡','Советы'],['ads','📊','Реклама'],['econ','💰','Экономика'],['ctl','🛡','Контроль'],['more','⚙️','Ещё']];
 function $(id){return document.getElementById(id)}
 function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
 function ss(k,v){try{if(v===undefined)return sessionStorage.getItem(k);sessionStorage.setItem(k,v)}catch(e){return null}}
@@ -147,6 +154,7 @@ function rub(n){return isFinite(n)?Math.round(n).toLocaleString('ru-RU')+'\u00a0
 function pct(x,d){return isFinite(x)?(x*100).toLocaleString('ru-RU',{maximumFractionDigits:d==null?1:d})+'%':'—'}
 function pp(x){return (Math.round((+x||0)*10)/10).toLocaleString('ru-RU')+'%'}
 function vol(v){return (Math.round((+v||0)*100)/100).toLocaleString('ru-RU')+' л'}
+function dmY(s){s=String(s||'');return s.length>=10?s.slice(8,10)+'.'+s.slice(5,7)+(s.slice(0,4)!==String(new Date().getFullYear())?'.'+s.slice(2,4):''):''}
 function dm(s){s=String(s||'');return s.length>=10?s.slice(8,10)+'.'+s.slice(5,7):''}
 function perTxt(d){return d===1?'за вчера'+(D&&D.days===1&&D.from?' ('+dm(D.from)+')':''):d===7?'за 7 дней':'за 30 дней'}
 function tile(l,v,sub,cls){return '<div class="tile'+(cls?' '+cls:'')+'"><small>'+esc(l)+'</small><b>'+v+'</b>'+(sub?'<i>'+sub+'</i>':'')+'</div>'}
@@ -262,6 +270,7 @@ function alerts(){
   var r=D.rtn;
   if(r&&r.wait&&r.wait.length){var u=r.wait.filter(function(x){return x.urgent});
     a.push(['📍',(u.length?'Срочно забрать возвраты: '+u.length:'Возвраты ждут на ПВЗ: '+r.wait.length),rtnLine(u[0]||r.wait[0])+(r.wait.length>1?' · всего '+r.wait.length:''),u.length?'':'warn','ctl']);}
+  if(D.tips&&D.tips.list)D.tips.list.filter(function(x){return x.l==='r'&&x.s!=='rtn'}).forEach(function(x){a.unshift(['🔴',esc(x.t),esc(x.x),'','tips'])});
   D.prods.forEach(function(p,i){var n=p.list.filter(function(x){return x.vd==='red'}).length;
     if(p.lost>=300)a.push(['🔴','Слив рекламы: '+esc(p.name),rub(p.lost)+' на '+n+' кластер(ах) без окупаемости','warn','ads-'+i]);
     if(p.e.profit<=0)a.push(['⛔','Товар в минусе до рекламы: '+esc(p.name),'проверь цену и себестоимость','','econ-'+i]);});
@@ -315,6 +324,8 @@ function renderAds(){
   var vt=e.profit<=0?'Товар в минусе ещё до рекламы — сначала цена или себестоимость.':!p.o?'Заказов с кластеров за период нет.':p.avgCpo<=e.target?'Реклама в норме.':p.avgCpo<=e.maxOrder?'На грани: убирай 🔴, ставки не повышай.':'Реклама в минус: заказ дороже предела '+rub(e.maxOrder)+'.';
   if(p.recent)vt+=' ⏳ Рекламу меняли '+p.recent.ago+' дн. назад — выводы через неделю.';
   if(D.days===1)vt+=' Это полные вчерашние сутки (00:00–24:00 МСК). За один день данных мало — по кластерам почти везде ⏳; смотри расход и заказы, а решения принимай по 7 дням.';
+  var av=D.more&&D.more.adv&&D.more.adv[p.nm];
+  if(av&&av.top&&av.top.length)vt+=' 🎯 Советник ('+av.time+'): '+av.top.slice(0,3).map(function(x){return (x.k==='up'?'⬆ ':x.k==='down'?'⬇ ':'➖ ')+x.q+(x.nb?' '+x.bid+'→'+x.nb+' ₽':'')}).join('; ')+'. Применить — в боте «🎯 Советник».';
   $('a-verdict').textContent=vt;
   var cnt={};p.list.forEach(function(a){cnt[a.vd]=(cnt[a.vd]||0)+1});
   $('a-chips').innerHTML='<button class="chip'+(!st.filt?' on':'')+'" data-f="">Все '+p.list.length+'</button>'+Object.keys(V).filter(function(k){return cnt[k]}).map(function(k){return '<button class="chip'+(st.filt===k?' on':'')+'" data-f="'+k+'">'+V[k][0]+' '+V[k][1]+' '+cnt[k]+'</button>'}).join('');
@@ -334,6 +345,21 @@ function renderEcon(){
   $('e-ads').innerHTML=tile('🎯 Цель: заказ',rub(e.target),'клик до '+rub(e.targetCpc),'good')+tile('🎯 Цель: ДРР',pct(e.targetDrr),'')+tile('🔴 MAX: заказ',rub(e.maxOrder),'клик '+rub(e.maxCpc),'bad')+tile('🔴 MAX: ДРР',pct(e.maxDrr),'')+tile('Клик → заказ',pct(e.cr),'реклама '+pct(e.share,0)+' переходов');
   $('e-keep').textContent=100-D.keep;
 }
+var TSEC={price:'💰 Цена и продажи',ads:'📣 Реклама',stock:'📦 Остатки и закупка',promo:'🏷 Акции',rtn:'📍 Возвраты и штрафы',docs:'📄 Документы и ключи'};
+function renderTips(){
+  var t=D.tips,h='';
+  if(!t){$('t-body').innerHTML='<div class="empty">Советов пока нет — бот соберёт их при ближайшей проверке (раз в 30 минут).</div>';return}
+  h+='<div class="card"><div class="tiles">'+tile('🔴 Срочно',String(t.n.r),'',t.n.r?'bad':'good')+tile('🟡 Советы',String(t.n.y),'',t.n.y?'warn':'')+tile('⚪ Справка',String(t.n.w),'')+'</div></div>';
+  if(!t.list.length)h+='<div class="alert ok"><span class="ic">✅</span><span><b>Всё спокойно</b><span>Срочного нет</span></span></div>';
+  ['r','y','w'].forEach(function(l){Object.keys(TSEC).forEach(function(sc){var g=t.list.filter(function(x){return x.l===l&&x.s===sc});if(!g.length)return;
+    h+='<div class="tipsec">'+(l==='r'?'🔴':l==='y'?'🟡':'⚪')+' '+TSEC[sc]+'</div>'+g.map(function(x){return '<div class="alert '+(l==='r'?'':l==='y'?'warn':'info')+'" style="cursor:default"><span style="min-width:0"><b>'+esc(x.t)+'</b><span>'+esc(x.x)+(x.due?' · до '+dm(x.due):'')+'</span>'+(x.a?'<span class="todo">👉 '+esc(x.a)+'</span>':'')+'</span></div>'}).join('')})});
+  var b=D.more&&D.more.buy;
+  if(b&&b.items){h+='<div class="card"><h3>📦 Когда заказывать</h3>'+Object.keys(b.items).map(function(nm){var x=b.items[nm],n=(D.prods.filter(function(p){return String(p.nm)===String(nm)})[0]||{}).name||nm;
+    return '<div class="item" style="cursor:default"><div class="top"><span class="name">'+esc(n)+'</span><span class="pill '+(x.daysTo!=null&&x.daysTo<=0?'p-red':x.daysTo!=null&&x.daysTo<=14?'p-edge':'p-good')+'">'+(x.orderBy?(x.daysTo<=0?'заказать сейчас':'заказать до '+dmY(x.orderBy)):'не скоро')+'</span></div>'+
+    '<div class="nums"><div><small>На складе</small><b>'+x.stock+'</b></div><div><small>Продаж/день</small><b>'+x.perDay+'</b></div><div><small>В пути</small><b>'+x.transit.reduce(function(s,z){return s+z.q},0)+'</b></div><div><small>Кончится</small><b>'+(x.runout?dmY(x.runout):'—')+'</b></div></div>'+
+    (x.gap?'<div class="note">⚠️ Товара не будет с ≈ '+dmY(x.gap)+' до прихода партии</div>':'')+(x.cny?'<div class="note">🏮 Раньше обычного — из-за китайского Нового года</div>':'')+'</div>'}).join('')+'<p class="note">Расчёт от '+esc(b.time)+'. «✅ Заказал» и продажи в день — в боте: «📦 Закупка».</p></div>'}
+  $('t-body').innerHTML=h;
+}
 function renderCtl(){
   var c=D.ctl;
   if(!c){$('c-body').innerHTML='<div class="empty">Проверки ещё не было — в боте нажми «🛡 Контроль».</div>';return}
@@ -352,6 +378,13 @@ function renderCtl(){
     var grew=i.volPrev&&i.vol>i.volPrev+0.001;u.push(i.vol?tile('Замер склада',vol(i.vol)+(grew?' ⚠️':''),grew?'было '+vol(i.volPrev):'без изменений',grew?'bad':''):tile('Замер склада','нет ✅','','good'));
     h+='<div class="card"><h3>'+esc(i.name)+'</h3><div class="tiles">'+u.join('')+'</div></div>'});
   if(c.log&&c.log.list&&c.log.list.length)h+='<div class="card"><h3>🚚 Логистика по неделям</h3>'+c.log.list.map(function(w){return '<div class="item" style="cursor:default"><div class="top"><span class="name">'+esc(w.label)+'</span><span class="pill '+(w.over>=1?'p-red':'p-good')+'">'+(w.over>=1?'переплата '+rub(w.over):'✅ по тарифу')+'</span></div><div class="nums"><div><small>Доставок</small><b>'+w.n+'</b></div><div><small>Списано</small><b>'+rub(w.sum)+'</b></div><div><small>По тарифу</small><b>'+rub(w.exp)+'</b></div><div><small>Дороже</small><b>'+(w.bad||0)+'</b></div></div></div>'}).join('')+'<p class="note">Сверка от '+esc(c.log.time)+'. Подробно — «🛡 Контроль» → «🚚 Логистика» в боте.</p></div>';
+  var mo=D.more||{};
+  if(mo.sppw){var sw=mo.sppw;h+='<div class="card"><h3>🏷 СПП на витрине</h3><div class="tiles">'+D.prods.map(function(p){var x=sw[p.nm];return x?tile(p.name.split(' ')[0],pp(x.spp),'покупатель '+rub(x.bp)+' · кошелёк ≈ '+rub(x.wal)):tile(p.name.split(' ')[0],'—','нет на витрине')}).join('')+'</div><p class="note">Как в Evirma: 1 − цена покупателя ÷ твоя цена со скидкой. Проверка '+esc(sw._t||'')+', раз в 30 минут.</p></div>'}
+  if(mo.cx&&mo.cx.n){var cx=mo.cx,R={pvz:'📦 Отказ на ПВЗ',wb:'⏰ Отменил WB',nostock:'🚫 Нулевой остаток',client1h:'↩️ Передумал в первый час',seller:'✋ Отменил продавец',defect:'🔧 Брак'};
+    h+='<div class="card"><h3>❌ Отмены FBS за 30 дней</h3><div class="tiles">'+tile('Заказов',String(cx.n),'')+Object.keys(cx.by).sort(function(a,b){return cx.by[b]-cx.by[a]}).map(function(k){return tile(R[k]||k,String(cx.by[k]),pct(cx.by[k]/cx.n,0),k==='wb'||k==='nostock'?'bad':k==='pvz'&&cx.by[k]/cx.n>=0.1?'warn':'')}).join('')+'</div><p class="note">'+esc(cx.time)+'. Подробно — «🛡 Контроль» → «❌ Отмены» в боте.</p></div>'}
+  if(mo.adm&&mo.adm.rows){var MN=['янв.','февр.','март','апр.','май','июнь','июль','авг.','сент.','окт.','нояб.','дек.'];
+    h+='<div class="card"><h3>📅 Реклама в % от заказов</h3><div class="tiles">'+mo.adm.rows.map(function(x){return tile(MN[+x.ym.slice(5,7)-1]+' '+x.ym.slice(0,4),x.part||!x.ord?'—':pct(x.pct),'реклама '+rub(x.ad),x.alarm?'bad':'')}).join('')+'</div>'+(mo.adm.opt?'<p class="note">🧩 Тарифные опции WB: +'+pp(mo.adm.opt.rate)+' от оборота</p>':'')+'<p class="note">Тревога — больше 15%. '+esc(mo.adm.time)+'.</p></div>'}
+  if(mo.promo&&mo.promo.list&&mo.promo.list.length)h+='<div class="card"><h3>🏷 Акции WB</h3>'+mo.promo.list.map(function(p){return '<div class="item" style="cursor:default"><div class="top"><span class="name">'+esc(p.name)+'</span><span class="pill p-wait">'+dm(p.from)+'–'+dm(p.to)+'</span></div><div class="note">'+(p.type==='auto'?'🤖 автоакция':'наших товаров подходит: '+p.n+(p.inA?', участвует: '+p.inA:''))+'</div></div>'}).join('')+'<p class="note">Выгодно ли — «💰 Экономика» → «🏷 Акции» в боте.</p></div>';
   h+='<p class="note">Проверка от '+esc(c.time)+', раз в 6 часов. Кнопки и текст для поддержки WB — «🛡 Контроль» в боте.</p>';
   $('c-body').innerHTML=h;
 }
@@ -367,7 +400,7 @@ function render(){
   var days=D?D.days:st.days;
   $('period').innerHTML=[1,7,30].map(function(d){var c=(days===d?'on':'')+(st.loading===d||(PEND[d]&&d===st.days)?' ld':'');return '<button class="'+c+'" data-per="'+d+'"'+(st.loading===d?' aria-busy="true"':'')+'>'+(d===1?'Вчера':d+'\u00a0дн.')+'</button>'}).join('');
   var a=D?alerts().length:0;
-  $('nav').innerHTML=TABS.map(function(t){return '<button class="'+(st.tab===t[0]?'on':'')+'" data-tab="'+t[0]+'"><span class="e">'+t[1]+'</span>'+t[2]+(t[0]==='home'&&a?'<span class="dot">'+a+'</span>':'')+'</button>'}).join('');
+  $('nav').innerHTML=TABS.map(function(t){return '<button class="'+(st.tab===t[0]?'on':'')+'" data-tab="'+t[0]+'"><span class="e">'+t[1]+'</span>'+t[2]+(t[0]==='home'&&a?'<span class="dot">'+a+'</span>':'')+(t[0]==='tips'&&D&&D.tips&&(D.tips.n.r+D.tips.n.y)?'<span class="dot">'+(D.tips.n.r+D.tips.n.y)+'</span>':'')+'</button>'}).join('');
   $('err').style.display=ERR?'block':'none';$('err').innerHTML=ERR;
   if(!D){
     $('sub').textContent=ERR?'нет данных':'загружаю…';
@@ -379,7 +412,7 @@ function render(){
   $('sub').textContent='Обновлено '+D.time;
   $('h-per').textContent='Товары '+perTxt(D.days);
   TABS.forEach(function(t){$('s-'+t[0]).className='screen'+(st.tab===t[0]?' on':'')});
-  ({home:renderHome,ads:renderAds,econ:renderEcon,ctl:renderCtl,more:renderMore})[st.tab]();
+  ({home:renderHome,tips:renderTips,ads:renderAds,econ:renderEcon,ctl:renderCtl,more:renderMore})[st.tab]();
   try{history.replaceState(null,'',location.pathname+location.search+'#'+st.tab+(st.prod?'-'+st.prod:''))}catch(e){}
   syncBack();
 }
