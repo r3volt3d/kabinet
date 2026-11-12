@@ -1,0 +1,376 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><title>Кабинет WB</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' https://telegram.org https://script.google.com https://script.googleusercontent.com; connect-src https://script.google.com https://script.googleusercontent.com; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'">
+<!-- «Кабинет WB» для Telegram-бота G. В файле нет ключей и данных магазина: данные — у бота, только просмотр. -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{--bg:#f2f4f6;--card:#fff;--tile:#f2f4f6;--ink:#14202a;--muted:#5d6b77;--line:#dde3e8;--accent:#0d6f72;--accent-ink:#fff;--soft:#e1f0f0;
+--good:#1d7a3e;--good-s:#e3f3e8;--warn:#9a6200;--warn-s:#fbf0d9;--bad:#b4232c;--bad-s:#fbe4e5;--keep:#4b4fb0;--keep-s:#e8e9fa;
+--f:"Segoe UI",Roboto,system-ui,-apple-system,sans-serif;--nav:64px}
+@media (prefers-color-scheme:dark){:root:not(.light){--bg:#0e1418;--card:#172026;--tile:#1f2a31;--ink:#e6edf1;--muted:#97a6b1;--line:#2a363e;--accent:#4fb8b9;--accent-ink:#0e1418;--soft:#16302f;
+--good:#5ccf84;--good-s:#15301f;--warn:#e6b14a;--warn-s:#33280f;--bad:#f07a80;--bad-s:#3a191c;--keep:#a3a6f5;--keep-s:#23244a;color-scheme:dark}}
+:root.dark{--bg:#0e1418;--card:#172026;--tile:#1f2a31;--ink:#e6edf1;--muted:#97a6b1;--line:#2a363e;--accent:#4fb8b9;--accent-ink:#0e1418;--soft:#16302f;
+--good:#5ccf84;--good-s:#15301f;--warn:#e6b14a;--warn-s:#33280f;--bad:#f07a80;--bad-s:#3a191c;--keep:#a3a6f5;--keep-s:#23244a;color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 var(--f)}
+button{font:inherit;color:inherit}
+.app{max-width:760px;margin:0 auto;padding:0 12px calc(var(--nav) + 24px + env(safe-area-inset-bottom))}
+header{position:sticky;top:0;z-index:5;background:var(--bg);padding:12px 0 8px;display:flex;align-items:center;gap:10px}
+header h1{font-size:20px;margin:0;flex:1;min-width:0;overflow-wrap:anywhere}
+header small{display:block;font-size:12px;font-weight:400;color:var(--muted)}
+.seg{display:inline-flex;background:var(--tile);border-radius:10px;padding:3px;gap:2px}
+.seg a,.seg button{border:0;background:transparent;padding:6px 10px;border-radius:8px;font-weight:600;font-size:13px;color:var(--muted);text-decoration:none;cursor:pointer;min-height:32px;display:inline-flex;align-items:center}
+.seg .on{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.screen{display:none}.screen.on{display:block;animation:fade .18s ease}
+@keyframes fade{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:18px 2px 8px;font-weight:700}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px}
+.card h3{margin:0 0 10px;font-size:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.tile{background:var(--tile);border-radius:10px;padding:10px;min-width:0}
+.tile small{display:block;color:var(--muted);font-size:12px;line-height:1.3}
+.tile b{display:block;font-size:20px;line-height:1.25;margin-top:2px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.tile i{display:block;font-style:normal;color:var(--muted);font-size:12px;margin-top:2px;overflow-wrap:anywhere}
+.tile.bad{background:var(--bad-s)}.tile.bad b{color:var(--bad)}
+.tile.good b{color:var(--good)}.tile.warn{background:var(--warn-s)}.tile.warn b{color:var(--warn)}
+.up{color:var(--good)}.down{color:var(--bad)}
+.bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden;margin-top:8px;display:flex}
+.bar i{display:block;height:100%}
+.alert{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:10px;background:var(--bad-s);margin-bottom:8px;cursor:pointer;border:0;width:100%;text-align:left}
+.alert.warn{background:var(--warn-s)}.alert.ok{background:var(--good-s);cursor:default}
+.alert b{display:block}.alert span{font-size:13px;color:var(--muted)}
+.alert .ic{font-size:20px;line-height:1}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:8px;scrollbar-width:none}
+.chip{flex:0 0 auto;border:1px solid var(--line);background:var(--card);padding:6px 12px;border-radius:99px;cursor:pointer;font-size:13px;font-weight:600;min-height:34px}
+.chip.on{border-color:var(--accent);background:var(--soft);color:var(--accent)}
+.pill{display:inline-block;font-size:12px;font-weight:700;padding:3px 8px;border-radius:99px;white-space:nowrap;flex:0 0 auto}
+.p-good{background:var(--good-s);color:var(--good)}.p-edge{background:var(--warn-s);color:var(--warn)}.p-red{background:var(--bad-s);color:var(--bad)}
+.p-keep{background:var(--keep-s);color:var(--keep)}.p-wait{background:var(--tile);color:var(--muted)}
+.item{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:8px;cursor:pointer;width:100%;text-align:left;display:block}
+.item .top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.item .name{font-weight:700;overflow-wrap:anywhere;min-width:0}
+.item .nums{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:8px}
+.item .nums div{min-width:0}.item .nums small{display:block;font-size:11px;color:var(--muted)}.item .nums b{font-size:14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.item .more{display:none;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);font-size:13px;color:var(--muted)}
+.item.open .more{display:block}
+.ladder div{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.ladder div:last-child{border-bottom:0}.ladder b{font-variant-numeric:tabular-nums}
+.ladder .total{font-size:17px}
+.note{font-size:13px;color:var(--muted);margin:6px 2px 0}
+.empty{padding:16px;text-align:center;color:var(--muted)}
+.sel{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:6px 10px;font:inherit;font-size:13px;color:var(--ink);min-height:34px}
+.row2{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+nav .in{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(5,1fr)}
+nav button{border:0;background:transparent;height:var(--nav);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;color:var(--muted);font-size:11px;font-weight:600;position:relative}
+nav button .e{font-size:21px;line-height:1;filter:grayscale(1);opacity:.75}
+nav button.on{color:var(--accent)}nav button.on .e{filter:none;opacity:1}
+nav .dot{position:absolute;top:8px;left:calc(50% + 6px);min-width:16px;height:16px;border-radius:8px;background:var(--bad);color:#fff;font-size:10px;line-height:16px;padding:0 4px}
+ul.plain{margin:0;padding-left:18px}ul.plain li{margin-bottom:6px}
+.sk{background:linear-gradient(90deg,var(--tile) 0%,var(--line) 50%,var(--tile) 100%);background-size:200% 100%;animation:sh 1.3s linear infinite;border-radius:10px}
+@keyframes sh{from{background-position:100% 0}to{background-position:-100% 0}}
+.err{background:var(--bad-s);border-radius:14px;padding:12px;margin-bottom:10px;overflow-wrap:anywhere}
+.err .chip{margin-top:8px}
+html.panel .app{padding-left:8px;padding-right:8px}html.panel nav button{font-size:10.5px}html.panel header{padding-top:8px}html.panel header h1{font-size:17px}
+</style></head><body><div class="app">
+<header><h1 id="ttl">Кабинет WB<small id="sub"></small></h1><div class="seg" id="period"></div></header>
+<div class="note" id="loadnote" style="display:none;margin:0 2px 8px"></div>
+<div class="err" id="err" style="display:none"></div>
+<div id="skel" style="display:none"></div>
+
+<section class="screen" id="s-home">
+<div class="card"><h3>Реклама сегодня</h3><div class="tiles" id="h-spend"></div><div id="h-limbar"></div></div>
+<h2>Требует внимания</h2><div id="h-alerts"></div>
+<h2 id="h-per">Товары</h2><div id="h-prods"></div>
+</section>
+
+<section class="screen" id="s-ads">
+<div class="row2"><div class="seg" id="a-prod"></div></div>
+<div class="card"><div class="tiles" id="a-kpi"></div><div id="a-mix"></div><div class="note" id="a-verdict"></div></div>
+<div class="chips" id="a-chips"></div>
+<div class="row2"><label class="note" for="a-sort" style="margin:0">Сортировка</label><select class="sel" id="a-sort">
+<option value="sp">по расходу</option><option value="o">по заказам</option><option value="cpo">по цене заказа</option><option value="share">по доле заказов</option></select></div>
+<div id="a-list"></div>
+<p class="note">Нажми на кластер — подробности. Менять рекламу — в боте кнопками с подтверждением («🎯 Настройка рекламы», «📊 Джем»).</p>
+</section>
+
+<section class="screen" id="s-econ">
+<div class="row2"><div class="seg" id="e-prod"></div></div>
+<div class="card"><h3>Прибыль с одного выкупа</h3><div class="ladder" id="e-ladder"></div></div>
+<div class="card"><h3>Сколько можно платить за рекламу</h3><div class="tiles" id="e-ads"></div>
+<p class="note">🎯 Цель — продажа с рекламы окупает себя, реклама съедает не больше <span id="e-keep"></span>% прибыли. 🔴 MAX — реклама съедает всю прибыль.</p></div>
+<p class="note">Изменить себестоимость, налог, логистику — в боте: «💰 Экономика» → ✏️.</p>
+</section>
+
+<section class="screen" id="s-ctl">
+<div id="c-body"></div>
+</section>
+
+<section class="screen" id="s-more">
+<h2>Журнал изменений</h2><div id="m-jr"></div>
+<h2>Как читать</h2>
+<div class="card"><ul class="plain">
+<li><span class="pill p-red">🔴 Сливают</span> — тратят дороже предела и дают мало заказов. Кандидаты в минус-фразы.</li>
+<li><span class="pill p-keep">🛡 Не трогать</span> — дорогие, но дают 10% заказов товара и больше. Только снижать ставку.</li>
+<li><span class="pill p-edge">🟡 На грани</span> — между целью и пределом. Смотреть, не повышать.</li>
+<li><span class="pill p-good">🟢 Работают</span> — дешевле цели.</li>
+<li><span class="pill p-wait">⏳ Мало данных</span> — рано судить.</li>
+</ul></div>
+<h2>Расширение Chrome</h2>
+<div class="card">Строка для расширения «Кабинет WB — G»: в боте нажми «🛡 Контроль» → «🧩 Ключ для расширения Chrome» (или команда /app). Скопируй строку и вставь в панель расширения.<br><span class="note">Эта страница не хранит данных магазина: каждый раз берёт их у бота, только для просмотра.</span></div>
+<p class="note" id="m-ver"></p>
+</section>
+</div>
+
+<nav><div class="in" id="nav"></div></nav>
+
+<script>
+// «Кабинет WB» на GitHub Pages. В этом файле нет ни ключей, ни данных магазина:
+// данные страница берёт у бота (Apps Script, ?p=data), вход — подпись Telegram, подпись ссылки или ключ расширения.
+var PAGE_VER='1.0 · 12.11.2026';
+var TG=(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initData)?Telegram.WebApp:null;
+var D=null,CACHE={},PEND={},MODE='fetch',SEQ=0,ERR='';
+var V={red:['🔴','Сливают','p-red'],keep:['🛡','Не трогать','p-keep'],edge:['🟡','На грани','p-edge'],good:['🟢','Работают','p-good'],wait:['⏳','Мало данных','p-wait']};
+var VC={red:'var(--bad)',keep:'var(--keep)',edge:'var(--warn)',good:'var(--good)',wait:'var(--muted)'};
+var TABS=[['home','🏠','Главная'],['ads','📊','Реклама'],['econ','💰','Экономика'],['ctl','🛡','Контроль'],['more','⚙️','Ещё']];
+function $(id){return document.getElementById(id)}
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+function ss(k,v){try{if(v===undefined)return sessionStorage.getItem(k);sessionStorage.setItem(k,v)}catch(e){return null}}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function rub(n){return isFinite(n)?Math.round(n).toLocaleString('ru-RU')+' ₽':'—'}
+function pct(x,d){return isFinite(x)?(x*100).toLocaleString('ru-RU',{maximumFractionDigits:d==null?1:d})+'%':'—'}
+function pp(x){return (Math.round((+x||0)*10)/10).toLocaleString('ru-RU')+'%'}
+function vol(v){return (Math.round((+v||0)*100)/100).toLocaleString('ru-RU')+' л'}
+function dm(s){s=String(s||'');return s.length>=10?s.slice(8,10)+'.'+s.slice(5,7):''}
+function perTxt(d){return d===1?'за вчера'+(D&&D.days===1&&D.from?' ('+dm(D.from)+')':''):d===7?'за 7 дней':'за 30 дней'}
+function tile(l,v,sub,cls){return '<div class="tile'+(cls?' '+cls:'')+'"><small>'+esc(l)+'</small><b>'+v+'</b>'+(sub?'<i>'+sub+'</i>':'')+'</div>'}
+
+// ---- адрес бота и вход ----
+var HP={};(location.hash||'').replace(/^#/,'').split('&').forEach(function(kv){var i=kv.indexOf('=');if(i>0){try{HP[decodeURIComponent(kv.slice(0,i))]=decodeURIComponent(kv.slice(i+1))}catch(e){}}else if(kv)HP._tab=kv});
+var BID=new URLSearchParams(location.search).get('b')||'';
+if(!/^[\w-]{20,120}$/.test(BID))BID=ls('kab_b')||'';
+if(!/^[\w-]{20,120}$/.test(BID))BID='';else ls('kab_b',BID);
+var EXEC=BID?'https://script.google.com/macros/s/'+BID+'/exec':'';
+var AUTH='';
+if(TG)AUTH='a='+encodeURIComponent(TG.initData);
+else if(HP.t&&/^\d+\.[\w-]{10,64}$/.test(HP.t)){AUTH='t='+encodeURIComponent(HP.t);ss('kab_auth',AUTH)}
+else if(HP.k&&/^[\w-]{16,64}$/.test(HP.k)){AUTH='k='+encodeURIComponent(HP.k);ss('kab_auth',AUTH)}
+else AUTH=ss('kab_auth')||'';
+if(HP.view==='panel'||ss('kab_view')==='panel'){document.documentElement.classList.add('panel');ss('kab_view','panel')}
+
+// ---- состояние экрана ----
+var st={tab:'home',prod:0,filt:'',sort:'sp',days:+ls('kab_d')||30,loading:0,hist:[]};
+if([1,7,30].indexOf(st.days)<0)st.days=30;
+(function(){var h=String(HP._tab||'').split('-');if(TABS.some(function(t){return t[0]===h[0]}))st.tab=h[0];if(h[1])st.prod=+h[1]||0})();
+
+// ---- тема и кнопки Telegram ----
+function applyTheme(){
+  if(!TG)return;var tp=TG.themeParams||{},r=document.documentElement,s=r.style;
+  r.classList.toggle('dark',TG.colorScheme==='dark');r.classList.toggle('light',TG.colorScheme!=='dark');
+  function set(v,c){if(c&&/^#[0-9a-f]{6}$/i.test(c))s.setProperty(v,c);else s.removeProperty(v)}
+  set('--bg',tp.secondary_bg_color||tp.bg_color);set('--card',tp.section_bg_color||tp.bg_color);set('--tile',tp.secondary_bg_color);
+  set('--ink',tp.text_color);set('--muted',tp.hint_color||tp.subtitle_text_color);set('--line',tp.section_separator_color);
+  set('--accent',tp.button_color);set('--accent-ink',tp.button_text_color);
+  try{TG.setHeaderColor('secondary_bg_color');TG.setBackgroundColor('secondary_bg_color')}catch(e){}
+  try{if(TG.setBottomBarColor)TG.setBottomBarColor('secondary_bg_color')}catch(e){}
+}
+function haptic(){try{TG&&TG.HapticFeedback&&TG.HapticFeedback.selectionChanged()}catch(e){}}
+function openClusters(){return document.querySelectorAll('#a-list .item.open')}
+function syncBack(){
+  if(!TG||!TG.BackButton)return;
+  var need=st.hist.length||st.tab!=='home'||(st.tab==='ads'&&openClusters().length);
+  try{need?TG.BackButton.show():TG.BackButton.hide()}catch(e){}
+}
+function goBack(){
+  var o=openClusters();
+  if(o.length){for(var i=0;i<o.length;i++)o[i].classList.remove('open');syncBack();return}
+  var p=st.hist.pop()||{tab:'home',prod:st.prod};
+  st.tab=p.tab;st.prod=p.prod;st.filt='';render();window.scrollTo(0,0);
+}
+function goTab(tab,prod){
+  if(tab===st.tab&&(prod==null||prod===st.prod))return;
+  st.hist.push({tab:st.tab,prod:st.prod});if(st.hist.length>20)st.hist.shift();
+  st.tab=tab;if(prod!=null)st.prod=prod;st.filt='';render();window.scrollTo(0,0);
+}
+if(TG){
+  try{TG.ready();TG.expand()}catch(e){}
+  try{if(TG.disableVerticalSwipes)TG.disableVerticalSwipes()}catch(e){}
+  applyTheme();try{TG.onEvent('themeChanged',applyTheme)}catch(e){}
+  try{TG.BackButton.onClick(goBack)}catch(e){}
+}
+
+// ---- загрузка данных у бота ----
+function dataUrl(d){return EXEC+'?p=data&d='+d+'&'+AUTH}
+function viaFetch(d){
+  var ctl=window.AbortController?new AbortController():null,timer=setTimeout(function(){if(ctl)ctl.abort()},45000);
+  return fetch(dataUrl(d),{cache:'no-store',credentials:'omit',redirect:'follow',referrerPolicy:'no-referrer',signal:ctl?ctl.signal:undefined})
+    .then(function(r){clearTimeout(timer);return r.text().then(function(t){try{return JSON.parse(t)}catch(e){throw {soft:1,message:'бот ответил не JSON (код '+r.status+'). Проверь «Новую версию» развёртывания.'}}})},
+      function(e){clearTimeout(timer);throw e});
+}
+function viaJsonp(d){
+  return new Promise(function(ok,fail){
+    var cb='__kab'+(Date.now()%1e9)+(++SEQ),s=document.createElement('script'),done=false;
+    var t=setTimeout(function(){fin();fail({message:'бот не ответил за 45 секунд'})},45000);
+    function fin(){done=true;clearTimeout(t);try{delete window[cb]}catch(e){window[cb]=undefined}if(s.parentNode)s.parentNode.removeChild(s)}
+    window[cb]=function(o){if(done)return;fin();ok(o)};
+    s.onerror=function(){if(done)return;fin();fail({message:'бот недоступен (нет сети или адрес бота неверный)'})};
+    s.referrerPolicy='no-referrer';s.src=dataUrl(d)+'&cb='+cb;document.head.appendChild(s);
+  });
+}
+function getData(d){
+  if(MODE==='jsonp')return viaJsonp(d);
+  return viaFetch(d).catch(function(e){
+    if(e&&e.soft)throw e;
+    // fetch не прошёл (CORS / политика браузера) — пробуем запасной путь JSONP
+    return viaJsonp(d).then(function(o){MODE='jsonp';return o});
+  });
+}
+function load(d,ok,fail){
+  if(CACHE[d]){ok&&ok();return}
+  if(PEND[d]){PEND[d].push([ok,fail]);return}
+  PEND[d]=[[ok,fail]];
+  function end(err){var q=PEND[d]||[];delete PEND[d];q.forEach(function(x){if(!err&&CACHE[d]){x[0]&&x[0]()}else{x[1]&&x[1](err||{message:'нет данных'})}})}
+  getData(d).then(function(o){
+    if(o&&o.ok&&o.data){CACHE[d]=o.data;end()}
+    else end({message:(o&&o.error)||'бот ответил пустым',auth:o&&o.auth===false});
+  },function(e){end({message:(e&&e.message)||'нет связи с ботом'})});
+}
+
+// ---- экраны ----
+function alerts(){
+  var a=[],c=D.ctl,s=D.spend;
+  if(s&&D.lim&&s.today>=D.lim*0.8)a.push(['🚨',s.today>=D.lim?'Лимит рекламы превышен':'Реклама близко к лимиту',rub(s.today)+' из '+rub(D.lim)+' сегодня','',null]);
+  if(c){
+    if(c.pen.n)a.push(['📏','Удержания за габариты: '+rub(c.pen.sum),c.pen.n+' шт. за 90 дней — подробнее в «Контроле»','','ctl']);
+    c.items.forEach(function(i){if(i.volPrev&&i.vol>i.volPrev+0.001)a.push(['📐','Замер склада вырос: '+esc(i.name),vol(i.volPrev)+' → '+vol(i.vol)+' — логистика станет дороже','','ctl']);
+      if(i.n&&i.prev&&i.prev-i.spp>=3)a.push(['📉','СПП упала: '+esc(i.name),pp(i.prev)+' → '+pp(i.spp),'warn','ctl'])});
+    if(c.sus.length)a.push(['🕵️','Подозрительные заказы: '+c.sus.length,esc(c.sus[0]),'warn','ctl']);
+    if(c.log&&c.log.over>=30)a.push(['🚚','Переплата за логистику: '+rub(c.log.over),'за '+c.log.weeks+' нед. — склад считает дороже тарифа по карточке','warn','ctl']);
+    if(c.comm&&Math.abs(c.comm.wb-c.comm.mine)>=0.05)a.push(['🧾','Комиссия WB изменилась: '+pp(c.comm.wb),'в «Экономике» стоит '+esc(c.comm.mine)+'%','warn','econ']);
+  }
+  D.prods.forEach(function(p,i){var n=p.list.filter(function(x){return x.vd==='red'}).length;
+    if(p.lost>=300)a.push(['🔴','Слив рекламы: '+esc(p.name),rub(p.lost)+' на '+n+' кластер(ах) без окупаемости','warn','ads-'+i]);
+    if(p.e.profit<=0)a.push(['⛔','Товар в минусе до рекламы: '+esc(p.name),'проверь цену и себестоимость','','econ-'+i]);});
+  return a;
+}
+function renderHome(){
+  var s=D.spend;
+  $('h-spend').innerHTML=s?tile('Потрачено сегодня',rub(s.today),D.lim?'лимит '+rub(D.lim):'')+tile('ДРР сегодня',s.todayRev?pct(s.today/s.todayRev):'—','')+tile('Вчера',rub(s.yest),'')+tile('За месяц',rub(s.month),s.monthRev?'ДРР '+pct(s.month/s.monthRev):''):'<div class="empty">Нет данных о рекламе</div>';
+  $('h-limbar').innerHTML=s&&D.lim?'<div class="bar"><i style="width:'+Math.min(100,s.today/D.lim*100)+'%;background:'+(s.today>=D.lim?'var(--bad)':s.today>=D.lim*0.8?'var(--warn)':'var(--good)')+'"></i></div>':'';
+  var a=alerts();
+  $('h-alerts').innerHTML=a.length?a.map(function(x){return '<button class="alert '+x[3]+'" data-go="'+(x[4]||'')+'"><span class="ic">'+x[0]+'</span><span style="min-width:0"><b>'+x[1]+'</b><span>'+x[2]+'</span></span></button>'}).join(''):'<div class="alert ok"><span class="ic">✅</span><span><b>Всё спокойно</b><span>Слива рекламы, штрафов и тревог нет</span></span></div>';
+  $('h-prods').innerHTML=D.prods.map(function(p,i){var e=p.e,ctl=D.ctl&&D.ctl.items[i];
+    return '<button class="item" data-go="ads-'+i+'"><div class="top"><span class="name">'+esc(p.name)+'</span><span class="pill '+(e.profit<=0?'p-red':!p.o?'p-wait':p.avgCpo<=e.target?'p-good':p.avgCpo<=e.maxOrder?'p-edge':'p-red')+'">'+(e.profit<=0?'⛔ в минусе':!p.o?'⏳ нет заказов с рекламы':p.avgCpo<=e.target?'🟢 реклама в норме':p.avgCpo<=e.maxOrder?'🟡 на грани':'🔴 реклама в минус')+'</span></div>'+
+    '<div class="nums"><div><small>Расход</small><b>'+rub(p.sp)+'</b></div><div><small>Заказы с рекл.</small><b>'+p.o+'</b></div><div><small>₽ за заказ</small><b>'+(p.o?rub(p.avgCpo):'—')+'</b></div><div><small>Прибыль/выкуп</small><b>'+rub(e.profit)+'</b></div></div>'+
+    (ctl&&ctl.n?'<div class="note">СПП '+pp(ctl.spp)+' · покупатель платит '+rub(ctl.fp)+' · заказов за 7 дней '+ctl.n+'</div>':'')+'</button>'}).join('');
+}
+function prodSeg(id){$(id).innerHTML=D.prods.map(function(p,i){return '<button class="'+(i===st.prod?'on':'')+'" data-prod="'+i+'">'+esc(p.name.split(' ')[0])+'</button>'}).join('')}
+function renderAds(){
+  prodSeg('a-prod');var p=D.prods[st.prod],e=p.e;
+  $('a-kpi').innerHTML=tile('Расход',rub(p.sp),'')+tile('Заказы',String(p.o),'')+tile('₽ за заказ',p.o?rub(p.avgCpo):'—','цель до '+rub(e.target),!p.o?'':p.avgCpo<=e.target?'good':p.avgCpo<=e.maxOrder?'warn':'bad')+tile('Слив',rub(p.lost),p.sp?pct(p.lost/p.sp,0)+' расхода':'',p.lost>=300?'bad':'');
+  var tot=p.list.reduce(function(a,b){return a+b.sp},0)||1,by={};p.list.forEach(function(a){by[a.vd]=(by[a.vd]||0)+a.sp});
+  $('a-mix').innerHTML='<div class="bar">'+Object.keys(V).map(function(k){return by[k]?'<i style="width:'+(by[k]/tot*100)+'%;background:'+VC[k]+'"></i>':''}).join('')+'</div>';
+  var vt=e.profit<=0?'Товар в минусе ещё до рекламы — сначала цена или себестоимость.':!p.o?'Заказов с кластеров за период нет.':p.avgCpo<=e.target?'Реклама в норме.':p.avgCpo<=e.maxOrder?'На грани: убирай 🔴, ставки не повышай.':'Реклама в минус: заказ дороже предела '+rub(e.maxOrder)+'.';
+  if(p.recent)vt+=' ⏳ Рекламу меняли '+p.recent.ago+' дн. назад — выводы через неделю.';
+  if(D.days===1)vt+=' Это полные вчерашние сутки (00:00–24:00 МСК). За один день данных мало — по кластерам почти везде ⏳; смотри расход и заказы, а решения принимай по 7 дням.';
+  $('a-verdict').textContent=vt;
+  var cnt={};p.list.forEach(function(a){cnt[a.vd]=(cnt[a.vd]||0)+1});
+  $('a-chips').innerHTML='<button class="chip'+(!st.filt?' on':'')+'" data-f="">Все '+p.list.length+'</button>'+Object.keys(V).filter(function(k){return cnt[k]}).map(function(k){return '<button class="chip'+(st.filt===k?' on':'')+'" data-f="'+k+'">'+V[k][0]+' '+V[k][1]+' '+cnt[k]+'</button>'}).join('');
+  $('a-sort').value=st.sort;
+  var rows=p.list.filter(function(a){return !st.filt||a.vd===st.filt}).map(function(a){var r={};for(var k in a)r[k]=a[k];r.cpo=a.o?a.sp/a.o:Infinity;return r});
+  rows.sort(function(a,b){return st.sort==='cpo'?a.cpo-b.cpo:b[st.sort]-a[st.sort]});
+  $('a-list').innerHTML=rows.length?rows.map(function(a){var v=V[a.vd]||V.wait;
+    return '<button class="item"><div class="top"><span class="name">'+esc(a.q)+'</span><span class="pill '+v[2]+'">'+v[0]+' '+v[1]+'</span></div>'+
+    '<div class="nums"><div><small>Расход</small><b>'+rub(a.sp)+'</b></div><div><small>Заказы</small><b>'+a.o+'</b></div><div><small>₽/заказ</small><b>'+(a.o?rub(a.cpo):'—')+'</b></div><div><small>Доля зак.</small><b>'+pct(a.share,0)+'</b></div></div>'+
+    '<div class="more">Показы '+(a.v||0).toLocaleString('ru-RU')+' · клики '+a.cl+' · CTR '+(a.v?pct(a.cl/a.v):'—')+' · корзины '+(a.atbs||0)+' · средняя позиция '+(a.pos||'—')+'<br>Почему: '+esc(a.why)+(a.cf?'<br>🔀 '+esc(a.cf):'')+'</div></button>'}).join(''):'<div class="empty">Нет кластеров</div>';
+}
+function renderEcon(){
+  prodSeg('e-prod');var e=D.prods[st.prod].e,n=D.prods[st.prod].n,rest=e.P-e.com-e.logi-e.tax-e.profit;
+  $('e-ladder').innerHTML='<div><span>Цена до СПП</span><b>'+rub(e.P)+'</b></div><div><span>Комиссия WB</span><b>−'+rub(e.com)+'</b></div><div><span>Логистика (выкуп '+pct(e.b,0)+')</span><b>−'+rub(e.logi)+'</b></div><div><span>Налог</span><b>−'+rub(e.tax)+'</b></div><div><span>Себестоимость и прочее</span><b>−'+rub(rest)+'</b></div><div class="total"><span>Прибыль до рекламы</span><b class="'+(e.profit>0?'up':'down')+'">'+rub(e.profit)+' · '+pct(e.margin,0)+'</b></div>'+
+  (n&&n.buy>0?'<div><span>Реклама на выкуп'+(n.manual?' (прикидка)':'')+'</span><b>−'+rub(n.adPerBuy)+'</b></div><div class="total"><span>💵 Чистая прибыль</span><b class="'+(n.net>0?'up':'down')+'">'+rub(n.net)+' · '+pct(n.netMargin,0)+'</b></div><div><span>За период · ~'+Math.round(n.buy)+' выкуп.</span><b class="'+(n.netTotal>0?'up':'down')+'">'+rub(n.netTotal)+'</b></div>':'<div><span>Чистая прибыль</span><b>нет заказов за период</b></div>');
+  $('e-ads').innerHTML=tile('🎯 Цель: заказ',rub(e.target),'клик до '+rub(e.targetCpc),'good')+tile('🎯 Цель: ДРР',pct(e.targetDrr),'')+tile('🔴 MAX: заказ',rub(e.maxOrder),'клик '+rub(e.maxCpc),'bad')+tile('🔴 MAX: ДРР',pct(e.maxDrr),'')+tile('Клик → заказ',pct(e.cr),'реклама '+pct(e.share,0)+' переходов');
+  $('e-keep').textContent=100-D.keep;
+}
+function renderCtl(){
+  var c=D.ctl;
+  if(!c){$('c-body').innerHTML='<div class="empty">Проверки ещё не было — в боте нажми «🛡 Контроль».</div>';return}
+  var t=[];t.push(c.pen.n?tile('Удержания за габариты',rub(c.pen.sum),c.pen.n+' шт. за 90 дней','bad'):tile('Удержания за габариты','нет ✅','за 90 дней','good'));
+  t.push(c.sus.length?tile('Подозрительные заказы',c.sus.length+' ⚠️','за 30 дней','warn'):tile('Подозрительные заказы','нет ✅','за 30 дней','good'));
+  if(c.comm){var ok=Math.abs(c.comm.wb-c.comm.mine)<0.05;t.push(tile('Комиссия FBS',pp(c.comm.wb)+(ok?' ✅':' ⚠️'),ok?'совпадает с «Экономикой»':'в «Экономике» '+esc(c.comm.mine)+'%',ok?'good':'warn'))}
+  if(c.log)t.push(c.log.over>=1?tile('Переплата за логистику',rub(c.log.over),'за '+c.log.weeks+' нед. отчётов','bad'):tile('Переплата за логистику','нет ✅',c.log.weeks+' нед. отчётов'+(c.log.save>=1?' · экономия '+rub(c.log.save):''),'good'));
+  var h='<div class="card"><h3>Кабинет</h3><div class="tiles">'+t.join('')+'</div>'+(c.sus.length?'<ul class="plain" style="margin-top:10px">'+c.sus.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>':'')+'</div>';
+  c.items.forEach(function(i){var u=[];
+    if(i.n){var ch=i.prev?i.spp-i.prev:0;u.push(tile('СПП за 7 дней',pp(i.spp)+(Math.abs(ch)>=0.5?(ch>0?' <span class="up">▲</span>':' <span class="down">▼</span>'):''),i.prev?'неделей раньше '+pp(i.prev):'',ch<=-3?'bad':''));
+      u.push(tile('Цена до СПП',rub(i.pd),'покупатель платит '+rub(i.fp)));u.push(tile('Заказов за 7 дней',String(i.n),''))}else u.push(tile('Заказы за 7 дней','нет',''));
+    var grew=i.volPrev&&i.vol>i.volPrev+0.001;u.push(i.vol?tile('Замер склада',vol(i.vol)+(grew?' ⚠️':''),grew?'было '+vol(i.volPrev):'без изменений',grew?'bad':''):tile('Замер склада','нет ✅','','good'));
+    h+='<div class="card"><h3>'+esc(i.name)+'</h3><div class="tiles">'+u.join('')+'</div></div>'});
+  if(c.log&&c.log.list&&c.log.list.length)h+='<div class="card"><h3>🚚 Логистика по неделям</h3>'+c.log.list.map(function(w){return '<div class="item" style="cursor:default"><div class="top"><span class="name">'+esc(w.label)+'</span><span class="pill '+(w.over>=1?'p-red':'p-good')+'">'+(w.over>=1?'переплата '+rub(w.over):'✅ по тарифу')+'</span></div><div class="nums"><div><small>Доставок</small><b>'+w.n+'</b></div><div><small>Списано</small><b>'+rub(w.sum)+'</b></div><div><small>По тарифу</small><b>'+rub(w.exp)+'</b></div><div><small>Дороже</small><b>'+(w.bad||0)+'</b></div></div></div>'}).join('')+'<p class="note">Сверка от '+esc(c.log.time)+'. Подробно — «🛡 Контроль» → «🚚 Логистика» в боте.</p></div>';
+  h+='<p class="note">Проверка от '+esc(c.time)+', раз в 6 часов. Кнопки и текст для поддержки WB — «🛡 Контроль» в боте.</p>';
+  $('c-body').innerHTML=h;
+}
+function renderMore(){
+  $('m-jr').innerHTML=D.jr.length?D.jr.map(function(j){return '<div class="card"><h3 style="font-size:14px;margin-bottom:4px">'+esc(String(j.d).split('-').reverse().join('.'))+' · '+esc(j.cn)+'</h3><div>'+esc(j.what)+'</div><div class="note">'+(j.done?esc(j.res):'итог через неделю')+'</div></div>'}).join(''):'<div class="card empty">Пока пусто: сюда попадают изменения рекламы, сделанные через бота.</div>';
+  $('m-ver').textContent='Бот '+(D.ver||'')+' · страница '+PAGE_VER+' · данные от '+D.time+(MODE==='jsonp'?' · запасной канал':'');
+}
+function skeleton(){
+  var sk='<div class="card"><div class="sk" style="width:40%;height:18px;margin-bottom:12px"></div><div class="tiles"><div class="sk" style="height:62px"></div><div class="sk" style="height:62px"></div><div class="sk" style="height:62px"></div><div class="sk" style="height:62px"></div></div></div>';
+  return sk+sk+'<div class="sk" style="height:96px;border-radius:14px"></div>';
+}
+function render(){
+  var days=D?D.days:st.days;
+  $('period').innerHTML=[1,7,30].map(function(d){return '<button class="'+(days===d?'on':'')+'" data-per="'+d+'">'+(st.loading===d?'…':d===1?'Вчера':d+' дн.')+'</button>'}).join('');
+  var a=D?alerts().length:0;
+  $('nav').innerHTML=TABS.map(function(t){return '<button class="'+(st.tab===t[0]?'on':'')+'" data-tab="'+t[0]+'"><span class="e">'+t[1]+'</span>'+t[2]+(t[0]==='home'&&a?'<span class="dot">'+a+'</span>':'')+'</button>'}).join('');
+  $('err').style.display=ERR?'block':'none';$('err').innerHTML=ERR;
+  if(!D){
+    $('sub').textContent=ERR?'нет данных':'загружаю…';
+    $('skel').style.display=ERR?'none':'block';$('skel').innerHTML=ERR?'':skeleton();
+    TABS.forEach(function(t){$('s-'+t[0]).className='screen'});syncBack();return;
+  }
+  $('skel').style.display='none';
+  if(st.prod>=D.prods.length)st.prod=0;
+  $('sub').textContent='Обновлено '+D.time;
+  $('h-per').textContent='Товары '+perTxt(D.days);
+  TABS.forEach(function(t){$('s-'+t[0]).className='screen'+(st.tab===t[0]?' on':'')});
+  ({home:renderHome,ads:renderAds,econ:renderEcon,ctl:renderCtl,more:renderMore})[st.tab]();
+  try{history.replaceState(null,'',location.pathname+location.search+'#'+st.tab+(st.prod?'-'+st.prod:''))}catch(e){}
+  syncBack();
+}
+function errText(e){
+  var m=esc((e&&e.message)||'ошибка');
+  if(e&&e.auth)return '⚠️ '+m+(TG?'':'<br><span class="note">Открой «📱 Кабинет» кнопкой в боте — там свежая ссылка.</span>');
+  return '⚠️ Не получилось взять данные у бота: '+m+'<br><span class="note">Попробуй через минуту. Если повторяется — напиши Claude, что здесь написано.</span><br><button class="chip" data-retry="1">🔄 Повторить</button>';
+}
+function setPeriod(d){
+  if(D&&d===D.days)return;
+  st.days=d;ls('kab_d',String(d));
+  if(CACHE[d]){D=CACHE[d];render();return}
+  if(!D){render();return}
+  st.loading=d;render();$('loadnote').style.display='block';$('loadnote').textContent='Загружаю данные '+perTxt(d)+'… бот считает 5–20 секунд, дальше переключение мгновенное.';
+  load(d,function(){if(st.loading!==d)return;st.loading=0;$('loadnote').style.display='none';D=CACHE[d];render()},
+    function(e){if(st.loading!==d)return;st.loading=0;$('loadnote').textContent='Не получилось загрузить '+perTxt(d)+': '+((e&&e.message)||'ошибка')+'. Нажми ещё раз.';render()});
+}
+function prefetch(){var q=[7,30,1].filter(function(d){return !CACHE[d]});(function next(){var d=q.shift();if(d)load(d,next,next)})()}
+function start(){
+  if(!EXEC){ERR='⚠️ Не знаю адрес бота. Открой «📱 Кабинет» кнопкой в Telegram-боте (или «🌐 В браузере»).';render();return}
+  if(!AUTH){ERR='⚠️ Нет входа. Открой «📱 Кабинет» кнопкой в Telegram-боте, нажми «🌐 В браузере» или открой из расширения Chrome.';render();return}
+  ERR='';render();
+  var d=st.days;
+  load(d,function(){D=CACHE[d];render();setTimeout(prefetch,300)},function(e){ERR=errText(e);render()});
+}
+document.addEventListener('click',function(ev){
+  var b=ev.target.closest('button,a');if(!b)return;
+  if(b.dataset.per){haptic();setPeriod(+b.dataset.per);return}
+  if(b.dataset.retry!=null){start();return}
+  if(!D)return;
+  if(b.dataset.tab){haptic();if(b.dataset.tab!==st.tab)goTab(b.dataset.tab);return}
+  if(b.dataset.prod!=null){haptic();st.prod=+b.dataset.prod;st.filt='';render();return}
+  if(b.dataset.f!=null){haptic();st.filt=b.dataset.f;render();return}
+  if(b.dataset.go!=null){if(!b.dataset.go)return;haptic();var g=b.dataset.go.split('-');goTab(g[0],g[1]!=null?+g[1]:null);return}
+  if(b.classList.contains('item')&&b.closest('#a-list')){b.classList.toggle('open');syncBack();return}
+});
+$('a-sort').addEventListener('change',function(){st.sort=this.value;render()});
+start();
+</script></body></html>
