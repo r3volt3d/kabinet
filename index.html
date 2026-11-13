@@ -87,6 +87,7 @@ button.alert{width:100%;text-align:left;font:inherit;color:inherit;border:0;curs
 .mktabs .on{border-color:var(--gem);color:inherit;font-weight:700}.mkrad span,.mkchk span{color:var(--muted)}.mkrad .on,.mkchk .on{color:var(--good);font-weight:700}
 .mkin{border:1px solid var(--line);border-radius:6px;padding:3px 6px;background:var(--card);width:100%}.mktbl{width:100%;border:1px solid var(--line);border-radius:6px;overflow:hidden}
 .mktbl div{display:grid;grid-template-columns:1fr 1fr;padding:3px 6px;border-top:1px solid var(--line)}.mktbl div:first-child{border-top:0}
+.jrow{padding:7px 0;border-top:1px solid var(--line)}.jrow:first-child{border-top:0}.jrow b{display:block;font-weight:600}.jrow small{color:var(--muted);font-size:12px}
 .leak{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-top:1px solid var(--line);font-size:13px}.leak b{white-space:nowrap}.p-wait{background:var(--tile);color:var(--muted)}
 .item{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:8px;cursor:pointer;width:100%;text-align:left;display:block}
 .item .top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
@@ -135,6 +136,7 @@ html.panel .app{padding-left:8px;padding-right:8px}html.panel nav button{font-si
 <option value="sp">по расходу</option><option value="o">по заказам</option><option value="cpo">по цене заказа</option><option value="share">по доле заказов</option></select></div>
 <div id="a-list"></div>
 <div class="card" id="a-leak-c"><h3 id="a-leak-t">🗓 Куда ушли деньги</h3><div id="a-leak"></div></div>
+<div class="card" id="a-auto-c" style="display:none"><h3>🤖 Автоматика и решения бота</h3><div id="a-auto"></div></div>
 <div class="card" id="a-hrs-c"><h3>🕐 Заказы по часам <small class="note" style="margin:0;font-weight:400">14 дней, МСК</small></h3><div id="a-hrs"></div></div>
 <p class="note">Нажми на кластер — подробности. Менять рекламу — в боте кнопками с подтверждением («🎯 Настройка рекламы», «📊 Джем»).</p>
 </section>
@@ -143,6 +145,7 @@ html.panel .app{padding-left:8px;padding-right:8px}html.panel nav button{font-si
 <div class="row2"><div class="seg" id="e-prod"></div></div>
 <div class="card"><div class="hrow"><h3>Прибыль с одного выкупа</h3><button class="chip" data-ed="t" id="e-edbtn">✏️ Изменить</button></div><div class="note" id="e-note" style="margin:0 0 6px"></div><div class="ladder" id="e-ladder"></div></div>
 <div class="card" id="e-edit" style="display:none"></div>
+<div class="card" id="e-club-c" style="display:none"><h3>👑 WB Клуб</h3><div class="tiles" id="e-club"></div><div class="note" id="e-club-n"></div></div>
 <div class="card"><h3>Сколько можно платить за рекламу</h3><div class="tiles" id="e-ads"></div>
 <p class="note">🎯 Цель — продажа с рекламы окупает себя, реклама съедает не больше <span id="e-keep"></span>% прибыли. 🔴 MAX — реклама съедает всю прибыль.</p></div>
 <p class="note">Нажми на строку или «✏️ Изменить» — поменяй себестоимость, налог, комиссию, логистику. Всё, что бот берёт из WB, можно вернуть кнопкой «🔄 Из WB».</p>
@@ -181,7 +184,7 @@ html.panel .app{padding-left:8px;padding-right:8px}html.panel nav button{font-si
 <script>
 // «Кабинет WB» на GitHub Pages. В этом файле нет ни ключей, ни данных магазина:
 // данные страница берёт у бота (Apps Script, ?p=data), вход — подпись Telegram, подпись ссылки или ключ расширения.
-var PAGE_VER='1.11.1 · 13.11.2026';
+var PAGE_VER='1.13 · 13.11.2026';
 var TG=(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initData)?Telegram.WebApp:null;
 var D=null,CACHE={},PEND={},MODE='fetch',SEQ=0,ERR='';
 var V={red:['🔴','Сливают','p-red'],keep:['🛡','Не трогать','p-keep'],edge:['🟡','На грани','p-edge'],good:['🟢','Работают','p-good'],wait:['⏳','Мало данных','p-wait']};
@@ -434,6 +437,27 @@ function renderKeys(){var box=$('m-keys');if(!box)return;var k=D.keys;
 }
 function goKeys(){st.hist.push({tab:st.tab,prod:st.prod});st.tab='more';st.sec='';render();setTimeout(function(){var e=$('m-keys');if(e)e.scrollIntoView({block:'start',behavior:'smooth'})},50)}
 
+// ---- 1.12 (A63): WB Клуб — доля заказов с клубной скидкой и сколько она стоит ----
+function renderClub(){var p=D.prods[st.prod],c=p&&p.club,box=$('e-club-c');if(!box)return;
+  if(!c){box.style.display='none';return}box.style.display='';
+  $('e-club').innerHTML=tile('Скидка клуба',c.d==null?'—':c.d+'%',c.d==null?'нет данных':c.boost?'буст в поиске ✅':c.d>0?'буста нет (нужно от 5%)':'не стоит',c.d==null?'':c.boost?'good':c.d>0?'warn':'')+
+    tile('Заказы с клубом',c.ord?c.o+' из '+c.ord:'—',c.ord?pct(c.share,0)+' заказов':'нет заказов за период','')+
+    (c.cost?tile('Скидка стоит','≈ '+rub(c.cost),perTxt(D.days),''):'');
+  $('e-club-n').textContent=c.d>0&&!c.boost?'WB поднимает в выдаче товары с клубной скидкой от 5% (если она стоит на половине карточек и больше). '+c.d+'% — просто скидка участникам клуба. После пополнения можно проверить 5% на 2 недели и сравнить места и заказы.':c.boost?'Клубная скидка от 5% — WB ставит товар выше в поиске.':'Стоимость — оценка: сумма заказов с клубом × скидку.';
+}
+// ---- 1.13 (A56): что включено из автоматики и что бот менял ----
+function renderAuto(p){var A=D.auto,box=$('a-auto-c');if(!box)return;if(!A){box.style.display='none';return}box.style.display='';
+  var tg=(A.tgt||[]).filter(function(t){return String(t.nm)===String(p.nm)}),on=(A.auto||[]).some(function(x){return String(x)===String(p.nm)});
+  var h='<div style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px">'+
+    '<span class="pill '+(A.sched.length?'p-good':'')+'">🕐 Расписание: '+(A.sched.length?A.sched.length+' кампан.':'выкл')+'</span>'+
+    '<span class="pill '+(on?'p-good':'')+'">🤖 Автоставки: '+(on?'вкл':'выкл')+'</span>'+
+    '<span class="pill '+(A.topup?'p-edge':'')+'">🔁 Автопополнение: '+(A.topup?'ВКЛ':'выкл')+'</span></div>';
+  if(A.sched.length)h+='<div class="note">🕐 '+A.sched.map(function(x){return esc(x.t)}).join(' · ')+'</div>';
+  if(tg.length)h+='<div class="note" style="margin-top:6px">🎯 Цели: '+tg.map(function(t){return (t.gz?'⭐ ':'')+esc(t.q)+' — место '+esc(t.pos)+', потолок '+rub(t.max)}).join('; ')+'</div>';
+  h+='<div style="margin-top:8px">'+((A.jrnl||[]).length?A.jrnl.slice(0,8).map(function(j){return '<div class="jrow"><b>'+esc(j.w)+'</b><small>'+dm(j.d)+' · '+esc(j.cn)+'</small></div>'}).join(''):'<div class="note">Правок пока не было.</div>')+'</div>';
+  h+=botBtn('🕐 Расписание','sch')+botBtn('🎯 Цели и автоставки','adv')+botBtn('💳 Бюджет','bud');
+  $('a-auto').innerHTML=h;
+}
 // ---- экраны ----
 function alerts(){
   var a=[],c=D.ctl,s=D.spend,kk=D.keys;
@@ -517,7 +541,7 @@ function renderAds(){
     return '<button class="item"><div class="top"><span class="name">'+esc(a.q)+'</span><span class="pill '+v[2]+'">'+v[0]+' '+v[1]+'</span></div>'+
     '<div class="nums"><div><small>Расход</small><b>'+rub(a.sp)+'</b></div><div><small>Заказы</small><b>'+a.o+'</b></div><div><small>₽/заказ</small><b>'+(a.o?rub(a.cpo):'—')+'</b></div><div><small>'+(okBe(a)?'Клик до':'Доля зак.')+'</small><b>'+(okBe(a)?rub(a.be):pct(a.share,0))+'</b></div></div>'+
     '<div class="more">Показы '+(a.v||0).toLocaleString('ru-RU')+' · клики '+a.cl+' · CTR '+(a.v?pct(a.cl/a.v):'—')+' · корзины '+(a.atbs||0)+' · средняя позиция '+(a.pos||'—')+' · доля заказов '+pct(a.share,0)+(okBe(a)?' · клик окупается до '+rub(a.be):'')+'<br>Почему: '+esc(a.why)+(a.cf?'<br>🔀 '+esc(a.cf):'')+'</div></button>'}).join(''):'<div class="empty">Нет кластеров</div>';
-  renderLeak(p);renderHrs();
+  renderLeak(p);renderHrs();renderAuto(p);
 }
 // ---- 1.10: «Экономика» правится прямо здесь — калькулятор + сохранение в бота (меняются только настройки бота, не WB) ----
 var EF=[['price','Цена до СПП','₽','Пусто — средняя цена заказа из WB. Впиши — посчитать «а если по такой цене».'],
@@ -620,7 +644,7 @@ function renderLadder(){var p=ecP(),ce=p.cfg&&drN(p)?ecCalc(p):null,e=ce?ce.e:p.
 function ecOpen(k){st.ed=true;renderEdit(true);var i=k&&$('ei-'+k);if(i){i.scrollIntoView({block:'center',behavior:'smooth'});setTimeout(function(){try{i.focus();i.select()}catch(e){}},250)}}
 function renderEcon(){
   if(!D.prods||!D.prods.length){$('e-ladder').innerHTML='<div class="empty">Нет товаров в данных бота</div>';return}
-  prodSeg('e-prod');renderLadder();renderEdit(false);
+  prodSeg('e-prod');renderLadder();renderEdit(false);renderClub();
 }
 var TSEC={price:'💰 Цена и продажи',ads:'📣 Реклама',stock:'📦 Остатки и закупка',promo:'🏷 Акции',rtn:'📍 Возвраты и штрафы',docs:'📄 Документы и ключи'};
 function renderTips(){
