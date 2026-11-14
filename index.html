@@ -184,7 +184,7 @@ html.panel .app{padding-left:8px;padding-right:8px}html.panel nav button{font-si
 <script>
 // «Кабинет WB» на GitHub Pages. В этом файле нет ни ключей, ни данных магазина:
 // данные страница берёт у бота (Apps Script, ?p=data), вход — подпись Telegram, подпись ссылки или ключ расширения.
-var PAGE_VER='1.13 · 13.11.2026';
+var PAGE_VER='1.13.1 · 13.11.2026';
 var TG=(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initData)?Telegram.WebApp:null;
 var D=null,CACHE={},PEND={},MODE='fetch',SEQ=0,ERR='';
 var V={red:['🔴','Сливают','p-red'],keep:['🛡','Не трогать','p-keep'],edge:['🟡','На грани','p-edge'],good:['🟢','Работают','p-good'],wait:['⏳','Мало данных','p-wait']};
@@ -449,9 +449,10 @@ function renderClub(){var p=D.prods[st.prod],c=p&&p.club,box=$('e-club-c');if(!b
 function renderAuto(p){var A=D.auto,box=$('a-auto-c');if(!box)return;if(!A){box.style.display='none';return}box.style.display='';
   var tg=(A.tgt||[]).filter(function(t){return String(t.nm)===String(p.nm)}),on=(A.auto||[]).some(function(x){return String(x)===String(p.nm)});
   var h='<div style="display:flex;flex-wrap:wrap;gap:6px;margin:0 0 8px">'+
-    '<span class="pill '+(A.sched.length?'p-good':'')+'">🕐 Расписание: '+(A.sched.length?A.sched.length+' кампан.':'выкл')+'</span>'+
-    '<span class="pill '+(on?'p-good':'')+'">🤖 Автоставки: '+(on?'вкл':'выкл')+'</span>'+
+    '<span class="pill '+(A.sched.length?'p-good':'')+'">🕐 Расписание 🧪: '+(A.sched.length?A.sched.length+' кампан.':'выкл')+'</span>'+
+    '<span class="pill '+(on?'p-good':'')+'">🤖 Автоставки 🧪: '+(on?((A.launch||{})[p.nm]?'запуск':'мягко'):'выкл')+'</span>'+
     '<span class="pill '+(A.topup?'p-edge':'')+'">🔁 Автопополнение: '+(A.topup?'ВКЛ':'выкл')+'</span></div>';
+  h+='<div class="note">🧪 Бета: всё автоматическое выключено, пока не включишь в боте. Автоставки по умолчанию мягкие (шаг 5%, до 2 правок в день); сильнее — только в «🆕 Режиме запуска» для новой карточки.</div>';
   if(A.sched.length)h+='<div class="note">🕐 '+A.sched.map(function(x){return esc(x.t)}).join(' · ')+'</div>';
   if(tg.length)h+='<div class="note" style="margin-top:6px">🎯 Цели: '+tg.map(function(t){return (t.gz?'⭐ ':'')+esc(t.q)+' — место '+esc(t.pos)+', потолок '+rub(t.max)}).join('; ')+'</div>';
   h+='<div style="margin-top:8px">'+((A.jrnl||[]).length?A.jrnl.slice(0,8).map(function(j){return '<div class="jrow"><b>'+esc(j.w)+'</b><small>'+dm(j.d)+' · '+esc(j.cn)+'</small></div>'}).join(''):'<div class="note">Правок пока не было.</div>')+'</div>';
